@@ -1,0 +1,11 @@
+{{! topbar.hbs }}
+<header class="topbar">
+  <div class="topbar-left">
+    <div class="page-title">{{title}}</div>
+  </div>
+  <div class="topbar-right">
+    {{#if isGestore}}
+    <a href="/news/gestione/nuova" class="btn btn-primary">➕ Nuova News</a>
+    {{/if}}
+  </div>
+</header>

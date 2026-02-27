@@ -1,0 +1,10 @@
+{{#if success}}
+  {{#each success}}
+  <div class="alert alert-success">✅ {{this}}</div>
+  {{/each}}
+{{/if}}
+{{#if error}}
+  {{#each error}}
+  <div class="alert alert-error">⚠️ {{this}}</div>
+  {{/each}}
+{{/if}}

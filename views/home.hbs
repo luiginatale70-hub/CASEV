@@ -1,0 +1,109 @@
+{{! views/home.hbs }}
+<div class="hero-banner">
+  <div class="hero-tag">✈ Sistema Attivo</div>
+  <div class="hero-title">Portale CASEV<br>Guardia Costiera Italiana</div>
+  <div class="hero-sub">Centro Addestramento per Equipaggi di Volo — Gestione integrata di documenti, personale e procedure operative.</div>
+  <div class="hero-meta">
+    <div class="hero-stat">
+      <div class="hero-stat-val">{{stats.totPersonale}}</div>
+      <div class="hero-stat-label">Equipaggi Attivi</div>
+    </div>
+    <div class="hero-divider"></div>
+    <div class="hero-stat">
+      <div class="hero-stat-val">{{stats.totPratiche}}</div>
+      <div class="hero-stat-label">Pratiche Valide</div>
+    </div>
+    <div class="hero-divider"></div>
+    <div class="hero-stat">
+      <div class="hero-stat-val">{{stats.totScadenze}}</div>
+      <div class="hero-stat-label">Scadenze Imminenti</div>
+    </div>
+  </div>
+</div>
+
+<!-- APP CARDS -->
+<div class="section-head"><div class="section-title">Accesso Rapido</div></div>
+<div class="grid-3" style="margin-bottom:28px;">
+  <div class="app-card" onclick="location.href='/esami'">
+    <div class="app-icon" style="background:rgba(26,58,92,0.08);">📝</div>
+    <div class="app-name">Esami On-Line</div>
+    <div class="app-desc">Piattaforma esami per allievi e istruttori</div>
+    <div class="app-status">Operativo</div>
+  </div>
+  {{#if isGestore}}
+  <div class="app-card" onclick="location.href='/archivio'">
+    <div class="app-icon" style="background:rgba(200,168,75,0.12);">🗄️</div>
+    <div class="app-name">Archivio Documenti</div>
+    <div class="app-desc">Accesso cartelle condivise e pratiche</div>
+    <div class="app-status">Operativo</div>
+  </div>
+  <div class="app-card" onclick="location.href='/personale'">
+    <div class="app-icon" style="background:rgba(74,222,128,0.1);">👥</div>
+    <div class="app-name">Personale Equipaggi</div>
+    <div class="app-desc">Schede personali e pratiche collegate</div>
+    <div class="app-status">Operativo</div>
+  </div>
+  {{else}}
+  <div class="app-card" onclick="location.href='/pubblicazioni'">
+    <div class="app-icon" style="background:rgba(74,222,128,0.1);">📚</div>
+    <div class="app-name">Pubblicazioni</div>
+    <div class="app-desc">Manualistica e normativa in vigore</div>
+    <div class="app-status">Pubblico</div>
+  </div>
+  <div class="app-card" onclick="location.href='/news'">
+    <div class="app-icon" style="background:rgba(239,68,68,0.1);">📰</div>
+    <div class="app-name">News & Comunicati</div>
+    <div class="app-desc">Aggiornamenti e comunicati ufficiali</div>
+    <div class="app-status">Pubblico</div>
+  </div>
+  {{/if}}
+</div>
+
+<!-- NEWS + PUBBLICAZIONI -->
+<div class="grid-2">
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">📰 Ultime News</div>
+      <a href="/news" class="link-all">Tutte →</a>
+    </div>
+    <div class="card-body">
+      {{#each news}}
+      <div class="news-item">
+        <div class="news-date">
+          <span class="news-day">{{formatDate this.published_at}}</span>
+        </div>
+        <div>
+          <span class="news-tag">{{this.categoria}}</span>
+          <div class="news-title"><a href="/news/{{this.id}}" style="color:inherit;text-decoration:none;">{{this.titolo}}</a></div>
+          <div class="news-excerpt">{{this.excerpt}}</div>
+        </div>
+      </div>
+      {{else}}
+      <p style="color:var(--text-muted);text-align:center;padding:20px 0;">Nessuna news disponibile.</p>
+      {{/each}}
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">📚 Pubblicazioni in Vigore</div>
+      <a href="/pubblicazioni" class="link-all">Sfoglia archivio →</a>
+    </div>
+    <div class="card-body">
+      {{#each pubs}}
+      <div class="pub-item">
+        <div class="pub-icon">📄</div>
+        <div>
+          <div class="pub-name">{{this.titolo}}</div>
+          <div class="pub-meta">{{this.tipo}} · Rev. {{this.revisione}} · {{formatDate this.data_vigenza}}</div>
+        </div>
+        {{#if this.percorso_file}}
+        <a href="/archivio/download?path={{this.percorso_file}}" class="pub-btn">⬇ PDF</a>
+        {{/if}}
+      </div>
+      {{else}}
+      <p style="color:var(--text-muted);text-align:center;padding:20px 0;">Nessuna pubblicazione.</p>
+      {{/each}}
+    </div>
+  </div>
+</div>

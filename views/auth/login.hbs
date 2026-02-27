@@ -1,0 +1,34 @@
+{{! views/auth/login.hbs }}
+<div class="auth-container">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <div class="logo-icon-lg">⚓</div>
+      <div class="auth-brand">CASEV</div>
+      <div class="auth-sub">Centro Addestramento Equipaggi di Volo<br>Guardia Costiera Italiana</div>
+    </div>
+
+    {{#if error}}
+    {{#each error}}
+    <div class="alert alert-error">⚠️ {{this}}</div>
+    {{/each}}
+    {{/if}}
+
+    <form action="/auth/login" method="POST" class="auth-form">
+      <div class="form-group">
+        <label for="username">Username</label>
+        <input type="text" id="username" name="username" placeholder="matricola o username" required autofocus>
+      </div>
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" placeholder="••••••••" required>
+      </div>
+      <button type="submit" class="btn btn-primary btn-full">Accedi →</button>
+    </form>
+
+    <div class="auth-footer">
+      <p>Accesso riservato al personale autorizzato.<br>
+      Per assistenza contattare l'amministratore di sistema.</p>
+    </div>
+  </div>
+  <div class="auth-bg-text">CASEV</div>
+</div>

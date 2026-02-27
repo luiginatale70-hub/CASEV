@@ -1,0 +1,55 @@
+<aside class="sidebar">
+  <div class="sidebar-header">
+    <div class="logo-area">
+      <div class="logo-icon">⚓</div>
+      <div class="logo-text">
+        <div class="logo-title">CASEV</div>
+        <div class="logo-sub">Centro Addestramento<br>Equipaggi di Volo</div>
+      </div>
+    </div>
+    <div class="sidebar-badge">GC-INTRANET</div>
+  </div>
+
+  <nav class="sidebar-nav">
+    <div class="nav-section">
+      <div class="nav-section-label">Principale</div>
+      <a href="/" class="nav-item"><span class="nav-icon">🏠</span> Home</a>
+      <a href="/news" class="nav-item"><span class="nav-icon">📰</span> News & Comunicati</a>
+      <a href="/pubblicazioni" class="nav-item"><span class="nav-icon">📚</span> Pubblicazioni in Vigore</a>
+    </div>
+
+    {{#if user}}
+    <div class="nav-section">
+      <div class="nav-section-label">Applicazioni</div>
+      <a href="http://10.142.3.123:3000/esami" class="nav-item"><span class="nav-icon">📝</span> Esami On-Line</a>
+      {{#if isGestore}}
+      <a href="/archivio" class="nav-item"><span class="nav-icon">🗄️</span> Archivio Documenti</a>
+      <a href="/personale" class="nav-item"><span class="nav-icon">👥</span> Personale Equipaggi</a>
+      {{/if}}
+    </div>
+
+    {{#if isAdmin}}
+    <div class="nav-section">
+      <div class="nav-section-label">Amministrazione</div>
+      <a href="/admin" class="nav-item"><span class="nav-icon">📊</span> Dashboard Admin</a>
+      <a href="/admin/utenti" class="nav-item"><span class="nav-icon">⚙️</span> Gestione Utenti</a>
+    </div>
+    {{/if}}
+    {{/if}}
+  </nav>
+
+  <div class="sidebar-footer">
+    {{#if user}}
+    <div class="user-card">
+      <div class="user-avatar">{{user.nome.[0]}}{{user.cognome.[0]}}</div>
+      <div class="user-info">
+        <div class="user-name">{{user.cognome}} {{user.nome}}</div>
+        <div class="user-role">{{user.ruolo}}</div>
+      </div>
+      <a href="/auth/logout" class="logout-btn" title="Esci">⏻</a>
+    </div>
+    {{else}}
+    <a href="/auth/login" class="btn btn-outline-light w100">🔑 Accedi</a>
+    {{/if}}
+  </div>
+</aside>
