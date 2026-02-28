@@ -1,0 +1,48 @@
+<%
+  const p = Number(page || 1);
+  const totalPages = Number(pages || 1);
+  const q = query || {};
+
+  const makeUrl = (targetPage) => {
+    const params = new URLSearchParams();
+    Object.entries(q).forEach(([k, v]) => {
+      if (v !== undefined && v !== null && String(v).trim() !== '') params.set(k, String(v));
+    });
+    params.set('page', String(targetPage));
+    return `${baseUrl}?${params.toString()}`;
+  };
+
+  const windowSize = 2;
+  const pagesToShow = [];
+
+  const add = (x) => { if (!pagesToShow.includes(x)) pagesToShow.push(x); };
+  add(1);
+  for (let i = p - windowSize; i <= p + windowSize; i++) {
+    if (i > 1 && i < totalPages) add(i);
+  }
+  if (totalPages > 1) add(totalPages);
+  pagesToShow.sort((a,b) => a-b);
+%>
+
+<nav aria-label="Paginazione">
+  <ul class="pagination mb-0">
+    <li class="page-item <%= p <= 1 ? 'disabled' : '' %>">
+      <a class="page-link" href="<%= makeUrl(Math.max(1, p-1)) %>" tabindex="-1">←</a>
+    </li>
+
+    <% let last = 0; %>
+    <% pagesToShow.forEach(pp => { %>
+      <% if (last && pp - last > 1) { %>
+        <li class="page-item disabled"><span class="page-link">…</span></li>
+      <% } %>
+      <li class="page-item <%= pp === p ? 'active' : '' %>">
+        <a class="page-link" href="<%= makeUrl(pp) %>"><%= pp %></a>
+      </li>
+      <% last = pp; %>
+    <% }) %>
+
+    <li class="page-item <%= p >= totalPages ? 'disabled' : '' %>">
+      <a class="page-link" href="<%= makeUrl(Math.min(totalPages, p+1)) %>">→</a>
+    </li>
+  </ul>
+</nav>

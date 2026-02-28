@@ -6,11 +6,11 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --navy: #1a3a5c;
-  --navy-dark: #0f2340;
-  --navy-light: #234f7d;
-  --navy-accent: #2d6aad;
-  --gold: #c8a84b;
+ --navy:        #003882;
+--navy-dark:   #002560;
+--navy-light:  #1a5099;
+--navy-accent: #2d70c8;
+--gold:        #c8a84b;
   --gold-light: #e8c96a;
   --bg: #f0f2f5;
   --white: #ffffff;

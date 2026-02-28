@@ -1,0 +1,46 @@
+<%- include('../partials/head') %>
+<%- include('../partials/nav') %>
+
+<% const _cls = (typeof cls !== 'undefined' && cls) ? cls : ((typeof c !== 'undefined' && c) ? c : null); %>
+
+<div class="container py-4" style="max-width: 700px;">
+  <div class="bg-white border rounded-3 shadow-sm p-4">
+    <h1 class="h5 mb-3">Modifica classe</h1>
+
+    <% if (!_cls) { %>
+      <div class="alert alert-danger">Classe non trovata.</div>
+      <a class="btn btn-outline-secondary" href="/admin/classes">Torna alle classi</a>
+    <% } else { %>
+      <form method="post">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label">Nome classe</label>
+            <input class="form-control" name="name" value="<%= _cls.name %>" required>
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label">Comando</label>
+            <input class="form-control" name="command" value="<%= _cls.command %>" required>
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label">Categoria</label>
+            <select class="form-select" name="category" required>
+              <% ['Piloti','Operatori di volo','Tecnici di volo'].forEach(cat => { %>
+                <option value="<%= cat %>" <%= _cls.category===cat?'selected':'' %>><%= cat %></option>
+              <% }) %>
+            </select>
+          </div>
+        </div>
+
+        <div class="mt-4">
+          <button class="btn btn-primary">Salva</button>
+          <a class="btn btn-link" href="/admin/classes">Annulla</a>
+        </div>
+      </form>
+    <% } %>
+
+  </div>
+</div>
+
+<%- include('../partials/foot') %>

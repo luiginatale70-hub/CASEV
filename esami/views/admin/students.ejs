@@ -1,0 +1,112 @@
+<%- include('../partials/head') %>
+<%- include('../partials/nav') %>
+
+
+  <div class="bg-white border rounded-3 shadow-sm p-4 mb-3">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+      <h1 class="h5 mb-0">Gestione allievi</h1>
+      <a class="btn btn-primary" href="/esami/admin/students/new">Nuovo allievo</a>
+    </div>
+
+    <form class="row g-2 align-items-end" method="get" action="/esami/admin/students">
+      <div class="col-md-4">
+        <label class="form-label">Comando</label>
+        <select class="form-select" name="command">
+          <option value="">Tutti</option>
+          <% commands.forEach(c => { %>
+            <option value="<%= c %>" <%= (filters.command===c) ? 'selected':'' %>><%= c %></option>
+          <% }) %>
+        </select>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Categoria</label>
+        <select class="form-select" name="category">
+          <option value="">Tutte</option>
+          <option value="Piloti" <%= filters.category==='Piloti'?'selected':'' %>>Piloti</option>
+          <option value="Operatori di volo" <%= filters.category==='Operatori di volo'?'selected':'' %>>Operatori di volo</option>
+          <option value="Tecnici di volo" <%= filters.category==='Tecnici di volo'?'selected':'' %>>Tecnici di volo</option>
+        </select>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Ricerca</label>
+        <input class="form-control" name="q" placeholder="Nome, cognome, email, qualifica, classe…" value="<%= filters.q || '' %>">
+      </div>
+      <div class="col-12">
+        <button class="btn btn-outline-primary w-100">Filtra</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="bg-white border rounded-3 shadow-sm p-4">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+      <div class="text-muted small">
+        <% if (typeof total !== 'undefined') { %>
+          Totale: <b><%= total %></b>
+        <% } %>
+      </div>
+    </div>
+
+    <div class="table-responsive">
+      <table class="table table-sm align-middle mb-0">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Grado</th>
+            <th>Nome</th>
+            <th>Cognome</th>
+            <th>Email</th>
+            <th>Qualifica</th>
+            <th>Classe</th>
+            <th class="text-end">Azioni</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% if (!rows.length) { %>
+            <tr><td colspan="8" class="text-muted">Nessun allievo.</td></tr>
+          <% } %>
+          <% rows.forEach(s => { %>
+            <tr>
+              <td><%= s.id %></td>
+              <td><%= s.rank %></td>
+              <td><%= s.name %></td>
+              <td><%= s.surname %></td>
+              <td><%= s.email %></td>
+              <td><%= s.qualification %></td>
+              <td class="text-muted"><%= s.class_name ? (s.command + ' / ' + s.category + ' / ' + s.class_name) : '-' %></td>
+              <td class="text-end">
+                <a class="btn btn-sm btn-outline-secondary" href="/esami/admin/students/<%= s.id %>/edit">Modifica</a>
+                <form class="d-inline" method="post" action="/esami/admin/students/<%= s.id %>/reset-password" onsubmit="return confirm('Resettare password?')">
+                  <button class="btn btn-sm btn-outline-warning">Reset</button>
+                </form>
+                <form class="d-inline" method="post" action="/esami/admin/students/<%= s.id %>/delete" onsubmit="return confirm('Cancellare allievo?')">
+                  <button class="btn btn-sm btn-outline-danger">Elimina</button>
+                </form>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+
+    <% if (pages > 1) { %>
+      <div class="mt-3">
+        <%- include('../partials/pagination', {
+          baseUrl: '/esami/admin/students',
+          page,
+          pages,
+          query: {
+            command: filters.command || '',
+            category: filters.category || '',
+            q: filters.q || ''
+          }
+        }) %>
+      </div>
+    <% } %>
+
+    <div class="mt-3">
+      <a class="btn btn-link" href="/esami/admin">Torna indietro</a>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/foot') %>

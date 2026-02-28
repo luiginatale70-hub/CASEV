@@ -1,0 +1,108 @@
+{{! views/admin/dashboard.hbs }}
+<div class="section-head">
+  <div class="section-title">📊 Dashboard Amministrazione</div>
+  <div style="font-size:12px;color:var(--text-muted);">Pannello di controllo sistema CASEV</div>
+</div>
+
+<!-- STAT CARDS -->
+<div class="grid-4" style="margin-bottom:24px;">
+  <div class="stat-card">
+    <div class="stat-icon" style="background:rgba(26,58,92,0.08);">👤</div>
+    <div>
+      <div class="stat-num">{{stats.totUtenti}}</div>
+      <div class="stat-label">Utenti Registrati</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon" style="background:rgba(74,222,128,0.1);">✈️</div>
+    <div>
+      <div class="stat-num">{{stats.totPersonale}}</div>
+      <div class="stat-label">Equipaggi Attivi</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon" style="background:rgba(200,168,75,0.12);">📚</div>
+    <div>
+      <div class="stat-num">{{stats.totPub}}</div>
+      <div class="stat-label">Pubblicazioni</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon" style="background:rgba(239,68,68,0.08);">📰</div>
+    <div>
+      <div class="stat-num">{{stats.totNews}}</div>
+      <div class="stat-label">News Pubblicate</div>
+    </div>
+  </div>
+</div>
+
+<!-- AZIONI RAPIDE + LOG ACCESSI -->
+<div class="grid-2">
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">⚡ Azioni Rapide</div>
+    </div>
+    <div class="card-body">
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <a href="/admin/utenti" class="admin-action-btn">
+          <span class="action-icon">⚙️</span>
+          <div>
+            <div class="action-name">Gestione Utenti</div>
+            <div class="action-desc">Crea, modifica, disattiva account</div>
+          </div>
+          <span class="action-arrow">→</span>
+        </a>
+        <a href="/personale/gestione/nuovo" class="admin-action-btn">
+          <span class="action-icon">➕</span>
+          <div>
+            <div class="action-name">Aggiungi Personale</div>
+            <div class="action-desc">Nuova scheda equipaggio</div>
+          </div>
+          <span class="action-arrow">→</span>
+        </a>
+        <a href="/personale" class="admin-action-btn">
+          <span class="action-icon">👥</span>
+          <div>
+            <div class="action-name">Elenco Personale</div>
+            <div class="action-desc">Gestisci schede e pratiche</div>
+          </div>
+          <span class="action-arrow">→</span>
+        </a>
+        <a href="/archivio" class="admin-action-btn">
+          <span class="action-icon">🗄️</span>
+          <div>
+            <div class="action-name">Archivio Documenti</div>
+            <div class="action-desc">Naviga le cartelle condivise</div>
+          </div>
+          <span class="action-arrow">→</span>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">🔐 Ultimi Accessi al Sistema</div>
+    </div>
+    <div class="card-body" style="padding:0;">
+      <div class="accessi-list">
+        {{#each ultimiAccessi}}
+        <div class="accesso-item">
+          <div class="accesso-esito {{#if (eq this.esito 'successo')}}esito-ok{{else}}esito-fail{{/if}}">
+            {{#if (eq this.esito 'successo')}}✓{{else}}✕{{/if}}
+          </div>
+          <div class="accesso-info">
+            <div class="accesso-user">
+              {{#if this.nome}}{{this.cognome}} {{this.nome}}{{else}}<em>{{this.username_tentato}}</em>{{/if}}
+            </div>
+            <div class="accesso-meta">{{this.ip_address}} · {{formatDateTime this.created_at}}</div>
+          </div>
+          <span class="tag {{#if (eq this.esito 'successo')}}tag-green{{else}}tag-red{{/if}}">{{this.esito}}</span>
+        </div>
+        {{else}}
+        <div style="text-align:center;padding:32px;color:var(--text-muted);">Nessun log disponibile.</div>
+        {{/each}}
+      </div>
+    </div>
+  </div>
+</div>

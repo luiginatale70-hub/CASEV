@@ -1,22 +1,30 @@
 {
   "name": "casev-portale",
-  "version": "1.0.0",
-  "description": "Portale CASEV - Centro Addestramento Equipaggi di Volo - Guardia Costiera",
+  "version": "2.0.0",
+  "description": "Portale CASEV con modulo Esami integrato",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "nodemon server.js"
+    "dev": "nodemon server.js",
+    "initdb:esami": "node esami/scripts/initdb.js"
   },
   "dependencies": {
     "express": "^4.18.2",
     "express-session": "^1.17.3",
+    "express-validator": "^7.0.1",
     "mysql2": "^3.6.5",
     "bcryptjs": "^2.4.3",
     "multer": "^1.4.5-lts.1",
     "dotenv": "^16.3.1",
     "express-handlebars": "^7.1.2",
     "connect-flash": "^0.1.1",
-    "method-override": "^3.0.0"
+    "method-override": "^3.0.0",
+    "ejs": "^3.1.10",
+    "sqlite3": "^5.1.7",
+    "xlsx": "^0.18.5",
+    "pdfkit": "^0.15.0",
+    "nodemailer": "^6.9.13",
+    "cookie-parser": "^1.4.6"
   },
   "devDependencies": {
     "nodemon": "^3.0.2"

@@ -1,0 +1,17 @@
+<%- include('../partials/head') %>
+<%- include('../partials/nav') %>
+
+
+  <div class="bg-white border rounded-3 shadow-sm p-4">
+    <h1 class="h5 mb-2">Tempo scaduto</h1>
+    <p class="text-muted mb-4">
+      Il tempo massimo per completare l’esame è terminato. L’esame è stato chiuso automaticamente.
+      Le risposte non date sono considerate errate.
+    </p>
+
+    <div class="d-flex gap-2">
+      <a class="btn btn-primary" href="/student/exams/<%= exam.id %>/result">Vedi risultato</a>
+      <a class="btn btn-outline-secondary" href="/student/exams">Torna ai miei esami</a>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,40 @@
+<%- include('../partials/head') %>
+
+<div class="naaf-login-wrap">
+  <div class="naaf-login-card">
+
+    <!-- Logo CASEV -->
+    <img src="/public/img/Logo-naaf.png" 
+     alt="CASEV" 
+     style="display:block; margin:0 auto 16px; height:80px; width:auto;">
+    <div class="naaf-login-title">CASEV</div>
+    <div class="naaf-login-sub">
+      Centro Addestramento Equipaggi di Volo<br>
+      <span style="color:var(--gold)">Portale Esami</span>
+    </div>
+
+    <% if (flash && flash.error && flash.error.length) { %>
+      <div class="alert alert-danger py-2 mb-3 text-center" style="font-size:.88rem;">
+        ⚠️ <%= flash.error[0] %>
+      </div>
+    <% } %>
+
+    <form method="post" action="/esami/login">
+      <div class="mb-3">
+        <label class="form-label">Email / Username</label>
+        <input class="form-control" name="email" autocomplete="username" required placeholder="nome@esempio.it" />
+      </div>
+      <div class="mb-4">
+        <label class="form-label">Password</label>
+        <input class="form-control" type="password" name="password" autocomplete="current-password" required placeholder="••••••••" />
+      </div>
+      <button class="btn btn-primary w-100" style="padding:.65rem;">Accedi</button>
+    </form>
+
+    <p class="text-center mt-4 mb-0" style="font-size:.78rem;color:var(--text-muted);">
+      La registrazione è gestita dall'amministratore.
+    </p>
+  </div>
+</div>
+
+<%- include('../partials/foot') %>

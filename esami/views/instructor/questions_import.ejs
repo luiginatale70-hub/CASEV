@@ -1,0 +1,30 @@
+<%- include('../partials/head') %>
+<%- include('../partials/nav') %>
+
+
+  <div class="bg-white border rounded-3 shadow-sm p-4">
+    <h1 class="h5 mb-3">Importa domande da Excel</h1>
+    <form method="post" action="/esami/instructor/questions/import" enctype="multipart/form-data">
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label">Tipologia esame</label>
+          <input class="form-control" name="exam_type" placeholder="Es. OV - Sicurezza volo" required />
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">File Excel (.xlsx)</label>
+          <input class="form-control" type="file" name="file" accept=".xlsx" required />
+        </div>
+      </div>
+
+      <div class="mt-3">
+        <button class="btn btn-primary">Importa</button>
+        <a class="btn btn-link" href="/esami/instructor">Annulla</a>
+      </div>
+
+      <hr class="my-4">
+      <p class="text-muted small mb-0">Colonne supportate: DOMANDA, A, B, C, D, CORRETTA, ARGOMENTO (facoltativo).</p>
+    </form>
+  </div>
+</div>
+
+<%- include('../partials/foot') %>

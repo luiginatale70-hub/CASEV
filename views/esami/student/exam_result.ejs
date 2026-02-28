@@ -1,0 +1,72 @@
+<%
+  const wrongByTopicSafe = (typeof wrongByTopic !== 'undefined' && Array.isArray(wrongByTopic)) ? wrongByTopic : [];
+  const totalWrongSafe   = (typeof totalWrong   !== 'undefined') ? totalWrong : 0;
+  const totalQuestionsSafe = (typeof totalQuestions !== 'undefined') ? totalQuestions : 0;
+  const scorePercentSafe = (typeof scorePercent !== 'undefined' && scorePercent != null) ? Number(scorePercent) : (exam && exam.score_percent != null ? Number(exam.score_percent) : null);
+  const passedSafe = (typeof passed !== 'undefined') ? !!passed : (exam && exam.passed ? true : false);
+%>
+<%- include('../partials/head') %>
+<%- include('../partials/nav') %>
+
+
+  <div class="bg-white border rounded-3 shadow-sm p-4">
+
+    <h1 class="h5 mb-3 fw-bold" style="color:var(--naaf-navy);">Risultato esame</h1>
+    <p class="mb-1">Tipologia: <b><%= exam.exam_type %></b></p>
+    <p class="mb-1">Percentuale: <b><%= (scorePercentSafe == null || Number.isNaN(scorePercentSafe)) ? '-' : scorePercentSafe.toFixed(1) + '%' %></b></p>
+    <p class="mb-1">Errori / Domande: <b><%= totalWrongSafe %></b> / <b><%= totalQuestionsSafe %></b></p>
+    <p class="mb-0">Esito:
+      <b class="<%= passedSafe ? 'text-success' : 'text-danger' %>">
+        <%= passedSafe ? 'PROMOSSO' : 'RESPINTO' %>
+      </b>
+      <span class="text-muted small">(soglia 80%)</span>
+    </p>
+
+    <hr class="my-4">
+
+    <h2 class="h6 fw-bold mb-3" style="color:var(--naaf-navy);">Domande sbagliate per argomento</h2>
+
+    <% if (wrongByTopicSafe.length === 0) { %>
+      <div class="alert alert-success">✅ Nessuna domanda sbagliata. Ottimo risultato!</div>
+    <% } else { %>
+      <div class="table-responsive mb-3">
+        <table class="table table-sm align-middle mb-0">
+          <thead>
+            <tr>
+              <th>Argomento</th>
+              <th class="text-center" style="width:160px;">Domande sbagliate</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% wrongByTopicSafe.forEach(row => { %>
+            <tr>
+              <td><%= row.topic || 'Non specificato' %></td>
+              <td class="text-center">
+                <%
+                  const __cnt = (row.n_sbagliate ?? row.count ?? row.cnt ?? row.total ?? 0);
+                %>
+                <span class="badge bg-danger" style="font-size:.85rem; padding:.4em .7em;"><%= __cnt %></span>
+              </td>
+            </tr>
+            <% }) %>
+            <tr class="fw-bold" style="border-top:2px solid #dee2e6;">
+              <td>Totale</td>
+              <td class="text-center">
+                <span class="badge bg-secondary" style="font-size:.85rem; padding:.4em .7em;"><%= totalWrongSafe %></span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="alert alert-info small mb-0">
+        Per eventuali chiarimenti rivolgiti all'istruttore.
+      </div>
+    <% } %>
+
+    <div class="mt-3">
+      <a class="btn btn-outline-primary" href="/student/exams">Torna agli esami</a>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/foot') %>

@@ -1,0 +1,42 @@
+<%- include('../partials/head') %>
+<%- include('../partials/nav') %>
+
+<div class="d-flex align-items-center justify-content-center" style="min-height:70vh;">
+  <div class="card shadow" style="width:100%;max-width:420px;border-radius:14px;overflow:hidden;">
+
+    <div style="background:linear-gradient(135deg,var(--navy-dark),var(--navy));padding:2rem;text-align:center;">
+      <img src="/img/Logo-naaf.png" alt="CASEV" style="height:64px;width:auto;margin-bottom:1rem;display:block;margin-left:auto;margin-right:auto;">
+      <div style="color:var(--gold);font-size:1.4rem;font-weight:800;letter-spacing:2px;">CASEV</div>
+      <div style="color:rgba(255,255,255,.7);font-size:.82rem;margin-top:.3rem;">
+        Centro Addestramento Equipaggi di Volo<br>
+        <span style="color:var(--gold-light);">Portale Esami</span>
+      </div>
+    </div>
+
+    <div style="padding:2rem;">
+      <% if (flash && flash.error && flash.error.length) { %>
+        <div class="alert alert-danger py-2 mb-3 text-center" style="font-size:.88rem;">
+          ⚠️ <%= flash.error[0] %>
+        </div>
+      <% } %>
+
+      <form method="post" action="/esami/login">
+        <div class="mb-3">
+          <label class="form-label fw-semibold" style="font-size:.85rem;text-transform:uppercase;letter-spacing:.5px;color:var(--navy);">Email / Username</label>
+          <input class="form-control" name="email" autocomplete="username" required placeholder="nome@esempio.it" />
+        </div>
+        <div class="mb-4">
+          <label class="form-label fw-semibold" style="font-size:.85rem;text-transform:uppercase;letter-spacing:.5px;color:var(--navy);">Password</label>
+          <input class="form-control" type="password" name="password" autocomplete="current-password" required placeholder="••••••••" />
+        </div>
+        <button class="btn btn-primary w-100" style="padding:.7rem;font-weight:600;letter-spacing:.5px;">Accedi</button>
+      </form>
+
+      <p class="text-center mt-3 mb-0" style="font-size:.78rem;color:var(--text-muted);">
+        La registrazione è gestita dall'amministratore.
+      </p>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/foot') %>
