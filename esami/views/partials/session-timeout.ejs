@@ -1,0 +1,39 @@
+<%# Partial: session-timeout.ejs - includi nel layout o nel footer %>
+<script>
+(function() {
+  var TIMEOUT_MS = 300000; // 5 minuti
+  var LOGIN_URL  = '/esami/auth/login?timeout=1';
+
+  // BroadcastChannel: sincronizza logout su tutte le schede
+  var bc = (typeof BroadcastChannel !== 'undefined') ? new BroadcastChannel('casev_session') : null;
+  if (bc) {
+    bc.onmessage = function(e) {
+      if (e.data === 'logout') {
+        window.location.href = LOGIN_URL;
+      }
+    };
+  }
+
+  var timer;
+
+  function doLogout() {
+    if (bc) bc.postMessage('logout');
+    fetch('/esami/auth/logout', { method: 'POST', credentials: 'same-origin' })
+      .catch(function() {})
+      .finally(function() {
+        window.location.href = LOGIN_URL;
+      });
+  }
+
+  function resetTimer() {
+    clearTimeout(timer);
+    timer = setTimeout(doLogout, TIMEOUT_MS);
+  }
+
+  ['click', 'keydown', 'mousemove', 'touchstart', 'scroll'].forEach(function(evt) {
+    document.addEventListener(evt, resetTimer, { passive: true });
+  });
+
+  resetTimer();
+})();
+</script>

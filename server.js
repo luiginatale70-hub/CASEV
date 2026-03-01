@@ -40,10 +40,27 @@ app.use(session({
   secret: process.env.SESSION_SECRET || 'casev-secret-change-me',
   resave: false,
   saveUninitialized: false,
-  cookie: { maxAge: parseInt(process.env.SESSION_MAX_AGE) || 86400000 }
+  rolling: true,
+  cookie: { maxAge: parseInt(process.env.SESSION_MAX_AGE) || 300000 }
 }));
 
 app.use(flash());
+// ── Auto-logout per inattività ────────────────────────────────
+const SESSION_TIMEOUT_MS = parseInt(process.env.SESSION_TIMEOUT_MS) || 300000;
+app.use((req, res, next) => {
+  if (req.session && req.session.user) {
+    const now = Date.now();
+    const last = req.session.lastActivity || now;
+    if (now - last > SESSION_TIMEOUT_MS) {
+      return req.session.destroy(() => {
+        res.redirect('/auth/login?timeout=1');
+      });
+    }
+    req.session.lastActivity = now;
+  }
+  next();
+});
+
 app.use(injectUser);
 
 // Flash → locals per Handlebars

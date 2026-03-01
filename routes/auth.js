@@ -70,5 +70,8 @@ async function hashPassword(pwd) {
   console.log('Hash:', h);
   return h;
 }
+
+// ── Keepalive sessione (chiamato dal client per evitare timeout) ──
+router.get('/ping', (req, res) => res.json({ ok: true }));
 module.exports = router;
 module.exports.hashPassword = hashPassword;

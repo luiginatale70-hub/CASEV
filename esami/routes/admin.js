@@ -100,13 +100,13 @@ router.post('/classes/new',
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       req.flash('error', 'Dati non validi.');
-      return res.redirect('/admin/classes/new');
+      return res.redirect('/esami/admin/classes/new');
     }
     await run('INSERT INTO classes(command,category,name,created_by_user_id) VALUES (?,?,?,?)',
       [req.body.command, req.body.category, req.body.name, req.session.user.id]
     );
     req.flash('success', 'Classe creata.');
-    res.redirect('/admin/classes');
+    res.redirect('/esami/admin/classes');
   }
 );
 
@@ -120,13 +120,13 @@ router.post('/instructors/new',
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       req.flash('error', 'Dati non validi.');
-      return res.redirect('/admin/instructors/new');
+      return res.redirect('/esami/admin/instructors/new');
     }
     const email = req.body.email.toLowerCase();
     const exists = await get('SELECT id FROM users WHERE email=?', [email]);
     if (exists) {
       req.flash('error', 'Email già presente.');
-      return res.redirect('/admin/instructors/new');
+      return res.redirect('/esami/admin/instructors/new');
     }
     const temp = randomPassword(10);
     const hash = bcrypt.hashSync(temp, 12);
@@ -146,7 +146,7 @@ router.post('/instructors/new',
     }
 
     req.flash('success', 'Istruttore creato. Se SMTP è configurato correttamente, l\'email è stata inviata.');
-    res.redirect('/admin');
+    res.redirect('/esami/admin');
   }
 );
 
@@ -218,13 +218,13 @@ router.post('/students/new',
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       req.flash('error', 'Dati non validi.');
-      return res.redirect('/admin/students/new');
+      return res.redirect('/esami/admin/students/new');
     }
     const email = req.body.email.toLowerCase();
     const exists = await get('SELECT id FROM users WHERE email=?', [email]);
     if (exists) {
       req.flash('error', 'Email già presente.');
-      return res.redirect('/admin/students/new');
+      return res.redirect('/esami/admin/students/new');
     }
     const temp = randomPassword(10);
     const hash = bcrypt.hashSync(temp, 12);
@@ -247,7 +247,7 @@ router.post('/students/new',
     }
 
     req.flash('success', 'Allievo creato. Se SMTP è configurato correttamente, l\'email è stata inviata.');
-    res.redirect('/admin/students');
+    res.redirect('/esami/admin/students');
   }
 );
 
@@ -268,13 +268,13 @@ router.post('/students/:id/edit',
     const student = await get('SELECT * FROM students WHERE id=?', [id]);
     if (!student) {
       req.flash('error', 'Allievo non trovato.');
-      return res.redirect('/admin/students');
+      return res.redirect('/esami/admin/students');
     }
     await run('UPDATE students SET rank=?, name=?, surname=?, qualification=?, class_id=? WHERE id=?',
       [req.body.rank, req.body.name, req.body.surname, req.body.qualification || '', req.body.class_id || null, id]
     );
     req.flash('success', 'Dati aggiornati.');
-    res.redirect('/admin/students');
+    res.redirect('/esami/admin/students');
   }
 );
 
@@ -285,7 +285,7 @@ router.post('/students/:id/delete', async (req, res) => {
     await run('DELETE FROM users WHERE id=?', [student.user_id]);
   }
   req.flash('success', 'Allievo cancellato.');
-  res.redirect('/admin/students');
+  res.redirect('/esami/admin/students');
 });
 
 router.post('/students/:id/reset-password', async (req, res) => {
@@ -293,7 +293,7 @@ router.post('/students/:id/reset-password', async (req, res) => {
   const student = await get('SELECT * FROM students WHERE id=?', [id]);
   if (!student) {
     req.flash('error', 'Allievo non trovato.');
-    return res.redirect('/admin/students');
+    return res.redirect('/esami/admin/students');
   }
   const temp = randomPassword(10);
   const hash = bcrypt.hashSync(temp, 12);
@@ -311,7 +311,7 @@ router.post('/students/:id/reset-password', async (req, res) => {
   }
 
   req.flash('success', 'Password resettata. Se SMTP è configurato correttamente, l\'email è stata inviata.');
-  res.redirect('/admin/students');
+  res.redirect('/esami/admin/students');
 });
 
 // --- LOGS (solo admin) ---
@@ -500,6 +500,57 @@ router.get('/audit.csv', requireRole('admin'), async (req, res) => {
   res.send('\ufeff' + lines.join('\r\n'));
 });
 
+
+// ── GET /esami/admin/classes/:id/edit ────────────────────────
+router.get('/classes/:id/edit', async (req, res) => {
+  const id = Number(req.params.id);
+  const cls = await get('SELECT * FROM classes WHERE id=?', [id]);
+  if (!cls) {
+    req.flash('error', 'Classe non trovata.');
+    return res.redirect('/esami/admin/classes');
+  }
+  res.render('admin/class_edit', { title: 'Modifica classe', cls });
+});
+
+// ── POST /esami/admin/classes/:id/edit ───────────────────────
+router.post('/classes/:id/edit',
+  body('name').trim().notEmpty(),
+  body('command').trim().notEmpty(),
+  body('category').isIn(['Piloti','Operatori di volo','Tecnici di volo']),
+  async (req, res) => {
+    const id = Number(req.params.id);
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      req.flash('error', 'Dati non validi. Tutti i campi sono obbligatori.');
+      return res.redirect('/esami/admin/classes/' + id + '/edit');
+    }
+    const cls = await get('SELECT * FROM classes WHERE id=?', [id]);
+    if (!cls) {
+      req.flash('error', 'Classe non trovata.');
+      return res.redirect('/esami/admin/classes');
+    }
+    await run(
+      'UPDATE classes SET name=?, command=?, category=? WHERE id=?',
+      [req.body.name.trim(), req.body.command.trim(), req.body.category.trim(), id]
+    );
+    req.flash('success', 'Classe aggiornata con successo.');
+    res.redirect('/esami/admin/classes');
+  }
+);
+
+// ── POST /esami/admin/classes/:id/delete ─────────────────────
+router.post('/classes/:id/delete', async (req, res) => {
+  const id = Number(req.params.id);
+  const cls = await get('SELECT * FROM classes WHERE id=?', [id]);
+  if (!cls) {
+    req.flash('error', 'Classe non trovata.');
+    return res.redirect('/esami/admin/classes');
+  }
+  await run('UPDATE students SET class_id=NULL WHERE class_id=?', [id]);
+  await run('DELETE FROM classes WHERE id=?', [id]);
+  req.flash('success', 'Classe "' + cls.name + '" eliminata. Gli allievi sono stati sganciati.');
+  res.redirect('/esami/admin/classes');
+});
 // Alias: gestione esami (route instructor)
 router.get('/exams', (req, res) => res.redirect('/instructor/exams'));
 
