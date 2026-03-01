@@ -214,6 +214,7 @@ router.post('/students/new',
   body('name').trim().notEmpty(),
   body('surname').trim().notEmpty(),
   async (req, res) => {
+    console.log('POST students/new - body:', req.body);
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       req.flash('error', 'Dati non validi.');
