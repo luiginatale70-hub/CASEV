@@ -1,0 +1,206 @@
+<div class="page-header">
+  <h1 class="page-title">⚙️ Gestione Utenti</h1>
+  <button class="btn btn-primary" onclick="document.getElementById('modal-nuovo').style.display='flex'">+ Nuovo Utente</button>
+</div>
+
+{{!-- Filtri --}}
+<div class="section-card mb-3">
+  <form method="get" class="filter-form">
+    <input type="text" name="q" value="{{filtri.q}}" placeholder="Cerca nome, username, email..." class="form-input">
+    <select name="ruolo" class="form-select">
+      <option value="">Tutti i ruoli</option>
+      <option value="admin" {{#if (eq filtri.ruolo "admin")}}selected{{/if}}>Admin</option>
+      <option value="admin_esami" {{#if (eq filtri.ruolo "admin_esami")}}selected{{/if}}>Admin Esami</option>
+      <option value="gestore" {{#if (eq filtri.ruolo "gestore")}}selected{{/if}}>Gestore</option>
+      <option value="istruttore" {{#if (eq filtri.ruolo "istruttore")}}selected{{/if}}>Istruttore</option>
+      <option value="allievo" {{#if (eq filtri.ruolo "allievo")}}selected{{/if}}>Allievo</option>
+    </select>
+    <button type="submit" class="btn btn-secondary">Filtra</button>
+    <a href="/admin/utenti" class="btn btn-outline">Reset</a>
+  </form>
+</div>
+
+<div class="section-card">
+  <div class="table-responsive">
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th>Utente</th>
+          <th>Email</th>
+          <th>Ruolo</th>
+          <th>Stato</th>
+          <th>Ultimo accesso</th>
+          <th>Azioni</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{#each utenti}}
+        <tr class="{{#unless attivo}}row-inactive{{/unless}}">
+          <td>
+            <div class="user-cell">
+              <div class="user-avatar-sm">{{#if cognome}}{{cognome.[0]}}{{else}}{{username.[0]}}{{/if}}</div>
+              <div>
+                <div class="fw-600">{{#if cognome}}{{cognome}} {{nome}}{{else}}{{username}}{{/if}}</div>
+                <div class="text-muted small">@{{username}}</div>
+              </div>
+            </div>
+          </td>
+          <td class="text-muted small">{{#if email}}{{email}}{{else}}—{{/if}}</td>
+          <td><span class="badge role-{{ruolo}}">{{ruolo}}</span></td>
+          <td>
+            {{#if attivo}}
+              <span class="badge badge-ok">Attivo</span>
+            {{else}}
+              <span class="badge badge-err">Inattivo</span>
+            {{/if}}
+          </td>
+          <td class="text-muted small">{{#if ultimo_accesso}}{{ultimo_accesso}}{{else}}Mai{{/if}}</td>
+          <td>
+            <div class="action-btns">
+              <button class="btn-icon" title="Modifica" onclick="openModifica({{id}}, '{{username}}', '{{nome}}', '{{cognome}}', '{{email}}', '{{ruolo}}')">✏️</button>
+              <form method="post" action="/admin/utenti/{{id}}/toggle" style="display:inline">
+                <button class="btn-icon" title="{{#if attivo}}Disattiva{{else}}Attiva{{/if}}">{{#if attivo}}🔴{{else}}🟢{{/if}}</button>
+              </form>
+              <button class="btn-icon" title="Reset password" onclick="openReset({{id}}, '{{username}}')">🔑</button>
+              <form method="post" action="/admin/utenti/{{id}}/elimina" style="display:inline" onsubmit="return confirm('Eliminare utente {{username}}?')">
+                <button class="btn-icon btn-danger" title="Elimina">🗑️</button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {{else}}
+        <tr><td colspan="6" class="text-center text-muted">Nessun utente trovato</td></tr>
+        {{/each}}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{{!-- Modal Nuovo Utente --}}
+<div id="modal-nuovo" class="modal-overlay" style="display:none">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3>Nuovo Utente</h3>
+      <button onclick="document.getElementById('modal-nuovo').style.display='none'" class="modal-close">✕</button>
+    </div>
+    <form method="post" action="/admin/utenti/nuovo">
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Username *</label>
+          <input type="text" name="username" class="form-input" required>
+        </div>
+        <div class="form-group">
+          <label>Password * (min 8 car.)</label>
+          <input type="password" name="password" class="form-input" required minlength="8">
+        </div>
+        <div class="form-group">
+          <label>Nome</label>
+          <input type="text" name="nome" class="form-input">
+        </div>
+        <div class="form-group">
+          <label>Cognome</label>
+          <input type="text" name="cognome" class="form-input">
+        </div>
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" name="email" class="form-input">
+        </div>
+        <div class="form-group">
+          <label>Ruolo *</label>
+          <select name="ruolo" class="form-select" required>
+            <option value="allievo">Allievo</option>
+            <option value="istruttore">Istruttore</option>
+            <option value="gestore">Gestore</option>
+            <option value="admin_esami">Admin Esami</option>
+            <option value="admin">Admin</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" onclick="document.getElementById('modal-nuovo').style.display='none'" class="btn btn-outline">Annulla</button>
+        <button type="submit" class="btn btn-primary">Crea Utente</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{{!-- Modal Modifica --}}
+<div id="modal-modifica" class="modal-overlay" style="display:none">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3>Modifica Utente — <span id="mod-username"></span></h3>
+      <button onclick="document.getElementById('modal-modifica').style.display='none'" class="modal-close">✕</button>
+    </div>
+    <form id="form-modifica" method="post">
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Nome</label>
+          <input type="text" name="nome" id="mod-nome" class="form-input">
+        </div>
+        <div class="form-group">
+          <label>Cognome</label>
+          <input type="text" name="cognome" id="mod-cognome" class="form-input">
+        </div>
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" name="email" id="mod-email" class="form-input">
+        </div>
+        <div class="form-group">
+          <label>Ruolo</label>
+          <select name="ruolo" id="mod-ruolo" class="form-select">
+            <option value="allievo">Allievo</option>
+            <option value="istruttore">Istruttore</option>
+            <option value="gestore">Gestore</option>
+            <option value="admin_esami">Admin Esami</option>
+            <option value="admin">Admin</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" onclick="document.getElementById('modal-modifica').style.display='none'" class="btn btn-outline">Annulla</button>
+        <button type="submit" class="btn btn-primary">Salva</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{{!-- Modal Reset Password --}}
+<div id="modal-reset" class="modal-overlay" style="display:none">
+  <div class="modal-box" style="max-width:400px">
+    <div class="modal-header">
+      <h3>Reset Password — <span id="reset-username"></span></h3>
+      <button onclick="document.getElementById('modal-reset').style.display='none'" class="modal-close">✕</button>
+    </div>
+    <form id="form-reset" method="post">
+      <div class="form-group">
+        <label>Nuova Password (min 8 caratteri)</label>
+        <input type="password" name="nuova_password" class="form-input" required minlength="8">
+      </div>
+      <div class="modal-footer">
+        <button type="button" onclick="document.getElementById('modal-reset').style.display='none'" class="btn btn-outline">Annulla</button>
+        <button type="submit" class="btn btn-primary">Aggiorna</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+function openModifica(id, username, nome, cognome, email, ruolo) {
+  document.getElementById('mod-username').textContent = username;
+  document.getElementById('mod-nome').value    = nome    || '';
+  document.getElementById('mod-cognome').value = cognome || '';
+  document.getElementById('mod-email').value   = email   || '';
+  document.getElementById('mod-ruolo').value   = ruolo   || 'allievo';
+  document.getElementById('form-modifica').action = '/admin/utenti/' + id + '/modifica';
+  document.getElementById('modal-modifica').style.display = 'flex';
+}
+function openReset(id, username) {
+  document.getElementById('reset-username').textContent = username;
+  document.getElementById('form-reset').action = '/admin/utenti/' + id + '/password';
+  document.getElementById('modal-reset').style.display = 'flex';
+}
+// Chiudi modal cliccando fuori
+document.querySelectorAll('.modal-overlay').forEach(m => {
+  m.addEventListener('click', e => { if (e.target === m) m.style.display = 'none'; });
+});
+</script>

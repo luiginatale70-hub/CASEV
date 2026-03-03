@@ -1,50 +1,35 @@
-const path    = require('path');
-const fs      = require('fs');
-const sqlite3 = require('sqlite3').verbose();
+// esami/src/db.js — MySQL (sostituisce SQLite)
+require('dotenv').config();
+const mysql = require('mysql2/promise');
 
-const dbPath = process.env.ESAMI_DB_PATH ||
-               path.join(__dirname, '..', '..', 'data', 'esami.db');
+const pool = mysql.createPool({
+  host:            process.env.DB_HOST     || 'localhost',
+  port:     parseInt(process.env.DB_PORT   || '3306'),
+  database:        process.env.DB_NAME     || 'casev_db',
+  user:            process.env.DB_USER     || 'root',
+  password:        process.env.DB_PASSWORD || '',
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0
+});
 
-const dataDir = path.dirname(dbPath);
-if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
-
-const db = new sqlite3.Database(dbPath);
-db.exec('PRAGMA foreign_keys = ON');
-
-function run(sql, params = []) {
-  return new Promise((resolve, reject) => {
-    db.run(sql, params, function(err) {
-      if (err) return reject(err);
-      resolve({ lastID: this.lastID, changes: this.changes });
-    });
-  });
+async function get(sql, params = []) {
+  const [rows] = await pool.query(sql, params);
+  return rows[0] || null;
 }
 
-function get(sql, params = []) {
-  return new Promise((resolve, reject) => {
-    db.get(sql, params, (err, row) => {
-      if (err) return reject(err);
-      resolve(row);
-    });
-  });
+async function all(sql, params = []) {
+  const [rows] = await pool.query(sql, params);
+  return rows;
 }
 
-function all(sql, params = []) {
-  return new Promise((resolve, reject) => {
-    db.all(sql, params, (err, rows) => {
-      if (err) return reject(err);
-      resolve(rows);
-    });
-  });
+async function run(sql, params = []) {
+  const [result] = await pool.query(sql, params);
+  return { lastID: result.insertId, changes: result.affectedRows };
 }
 
-function exec(sql) {
-  return new Promise((resolve, reject) => {
-    db.exec(sql, (err) => {
-      if (err) return reject(err);
-      resolve();
-    });
-  });
+async function exec(sql) {
+  await pool.query(sql);
 }
 
-module.exports = { db, run, get, all, exec, dbPath };
+module.exports = { pool, get, all, run, exec };

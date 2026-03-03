@@ -1,97 +1,58 @@
 /**
  * esami/routes/auth.js
- * Login / Logout / Cambio password per il modulo esami
+ * Login unificato: reindirizza al portale CASEV
  */
 const express = require('express');
 const bcrypt  = require('bcryptjs');
 const { body, validationResult } = require('express-validator');
-
-const { run }                                         = require('../src/db');
-const { getUserByEmail, verifyPassword, requireAuth } = require('../src/auth');
-const { logAccess }                                   = require('../src/accessLog');
+const { run }         = require('../src/db');
+const { requireAuth } = require('../src/auth');
 
 const router = express.Router();
 
-/* GET /esami/login */
+// GET /esami/login → redirect al login CASEV se non loggato
 router.get('/login', (req, res) => {
-  if (req.session.user) {
+  if (req.session && req.session.user) {
     const role = req.session.user.role;
     if (role === 'student')    return res.redirect('/esami/student');
     if (role === 'instructor') return res.redirect('/esami/instructor');
     if (role === 'admin')      return res.redirect('/esami/admin');
   }
-  res.render('auth/login', { title: 'Accesso Esami' });
+  res.redirect('/auth/login');
 });
 
-/* POST /esami/login */
-router.post('/login', async (req, res) => {
-  const email    = (req.body.email    || '').trim();
-  const password = (req.body.password || '').trim();
-
-  if (!email || !password) {
-    req.flash('error', 'Inserisci username e password.');
-    return res.redirect('/esami/login');
-  }
-
-  try {
-    const user = await getUserByEmail(email);
-
-    if (!user || !verifyPassword(user, password)) {
-      logAccess(req, { email, event: 'login_failed', details: { reason: 'bad_credentials' } }).catch(() => {});
-      req.flash('error', 'Credenziali non valide.');
-      return res.redirect('/esami/login');
-    }
-
-    req.session.user = {
-      id:                   user.id,
-      role:                 user.role,
-      email:                user.email,
-      must_change_password: !!user.must_change_password
-    };
-
-    logAccess(req, { userId: user.id, email: user.email, event: 'login_success' }).catch(() => {});
-
-    if (user.must_change_password) return res.redirect('/esami/change-password');
-    if (user.role === 'student')    return res.redirect('/esami/student');
-    if (user.role === 'instructor') return res.redirect('/esami/instructor');
-    if (user.role === 'admin')      return res.redirect('/esami/admin');
-
-    res.redirect('/esami');
-  } catch (err) {
-    console.error('Login error:', err);
-    req.flash('error', 'Errore interno. Riprova.');
-    res.redirect('/esami/login');
-  }
+// POST /esami/login → non usato, redirect al portale
+router.post('/login', (req, res) => {
+  res.redirect('/auth/login');
 });
 
-/* GET /esami/logout */
+// GET /esami/logout
 router.get('/logout', (req, res) => {
-  logAccess(req, {
-    userId: req.session?.user?.id    ?? null,
-    email:  req.session?.user?.email ?? null,
-    event:  'logout'
-  }).catch(() => {});
-  req.session.destroy(() => res.redirect('/esami/login'));
+  req.session.destroy(() => res.redirect('/auth/login'));
 });
 
-/* GET /esami/change-password */
+// POST /esami/logout (session timeout client)
+router.post('/logout', (req, res) => {
+  req.session.destroy(() => res.redirect('/auth/login'));
+});
+
+// GET /esami/change-password
 router.get('/change-password', requireAuth, (req, res) => {
   res.render('auth/change_password', { title: 'Cambio password' });
 });
 
-/* POST /esami/change-password */
+// POST /esami/change-password
 router.post('/change-password', requireAuth,
   body('password').isLength({ min: 8 }),
   body('password2').custom((v, { req }) => v === req.body.password),
   async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      req.flash('error', 'Password non valida o non corrispondente (min 8 caratteri).');
+      req.flash('error', 'Password non valida (min 8 caratteri) o non corrispondente.');
       return res.redirect('/esami/change-password');
     }
     const hash = bcrypt.hashSync(req.body.password, 12);
-    await run('UPDATE users SET password_hash = ?, must_change_password = 0 WHERE id = ?',
-      [hash, req.session.user.id]);
+    await run('UPDATE utenti SET password_hash=? WHERE id=?', [hash, req.session.user.id]);
     req.session.user.must_change_password = false;
     req.flash('success', 'Password aggiornata.');
     const role = req.session.user.role;
@@ -101,5 +62,8 @@ router.post('/change-password', requireAuth,
     res.redirect('/esami');
   }
 );
+
+// GET /ping keepalive
+router.get('/ping', (req, res) => res.json({ ok: true }));
 
 module.exports = router;

@@ -1,0 +1,89 @@
+<div class="page-header">
+  <h1 class="page-title">📊 Dashboard Amministrazione</h1>
+  <p class="page-sub">Panoramica del sistema CASEV</p>
+</div>
+
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-icon">👥</div>
+    <div class="stat-value">{{stats.totAttivi}}</div>
+    <div class="stat-label">Utenti attivi</div>
+    <div class="stat-sub">su {{stats.totUtenti}} totali</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon">📝</div>
+    <div class="stat-value">{{stats.totEsami}}</div>
+    <div class="stat-label">Esami totali</div>
+    <div class="stat-sub">{{stats.totAssegnati}} in attesa</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon">👤</div>
+    <div class="stat-value">{{stats.totPersonale}}</div>
+    <div class="stat-label">Personale attivo</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon">📚</div>
+    <div class="stat-value">{{stats.totPub}}</div>
+    <div class="stat-label">Pubblicazioni</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon">📰</div>
+    <div class="stat-value">{{stats.totNews}}</div>
+    <div class="stat-label">News pubblicate</div>
+  </div>
+</div>
+
+<div class="section-card mt-4">
+  <div class="section-header">
+    <h2 class="section-title">⚡ Azioni rapide</h2>
+  </div>
+  <div class="quick-actions">
+    <a href="/admin/utenti" class="quick-btn">⚙️ Gestione Utenti</a>
+    <a href="/admin/log" class="quick-btn">📋 Log Accessi</a>
+    <a href="/esami/admin" class="quick-btn">📝 Admin Esami</a>
+    <a href="/esami/instructor/exams" class="quick-btn">📊 Lista Esami</a>
+    <a href="/news" class="quick-btn">📰 Gestione News</a>
+    <a href="/pubblicazioni" class="quick-btn">📚 Pubblicazioni</a>
+  </div>
+</div>
+
+<div class="section-card mt-4">
+  <div class="section-header">
+    <h2 class="section-title">🕐 Ultimi accessi</h2>
+  </div>
+  <div class="table-responsive">
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th>Quando</th>
+          <th>Utente</th>
+          <th>IP</th>
+          <th>Esito</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{#each ultimiAccessi}}
+        <tr>
+          <td class="text-muted small">{{created_at}}</td>
+          <td>
+            {{#if nome}}{{cognome}} {{nome}}{{else}}{{username_tentato}}{{/if}}
+          </td>
+          <td class="text-muted small">{{ip_address}}</td>
+          <td>
+            {{#if (eq esito "successo")}}
+              <span class="badge badge-ok">✅ OK</span>
+            {{else}}
+              <span class="badge badge-err">❌ Fallito</span>
+            {{/if}}
+          </td>
+        </tr>
+        {{else}}
+        <tr><td colspan="4" class="text-center text-muted">Nessun accesso registrato</td></tr>
+        {{/each}}
+      </tbody>
+    </table>
+  </div>
+  <div class="mt-2">
+    <a href="/admin/log" class="btn-link">Vedi tutti i log →</a>
+  </div>
+</div>

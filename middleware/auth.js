@@ -20,7 +20,7 @@ function isGestoreOrAdmin(req, res, next) {
 function injectUser(req, res, next) {
   res.locals.user = req.session?.user || null;
   res.locals.isAdmin = req.session?.user?.ruolo === 'admin';
-  res.locals.isGestore = ['admin','gestore'].includes(req.session?.user?.ruolo);
+  res.locals.isGestore = ['admin','gestore','admin_esami'].includes(req.session?.user?.ruolo);
   next();
 }
 

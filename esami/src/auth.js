@@ -36,11 +36,11 @@ function requireAnyRole(...roles) {
 }
 
 async function getUserByEmail(email) {
-  return get('SELECT * FROM users WHERE email = ?', [email]);
+  return get('SELECT *, ruolo as role FROM utenti WHERE email = ?', [email]);
 }
 
 async function getUserById(id) {
-  return get('SELECT * FROM users WHERE id = ?', [id]);
+  return get('SELECT *, ruolo as role FROM utenti WHERE id = ?', [id]);
 }
 
 function verifyPassword(user, password) {

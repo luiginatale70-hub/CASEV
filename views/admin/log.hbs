@@ -1,0 +1,61 @@
+<div class="page-header">
+  <h1 class="page-title">📋 Log Accessi</h1>
+  <span class="text-muted">{{totale}} record trovati</span>
+</div>
+
+<div class="section-card mb-3">
+  <form method="get" class="filter-form">
+    <input type="text" name="q" value="{{filtri.q}}" placeholder="Cerca username o IP..." class="form-input">
+    <select name="esito" class="form-select">
+      <option value="">Tutti</option>
+      <option value="successo" {{#if (eq filtri.esito "successo")}}selected{{/if}}>✅ Successo</option>
+      <option value="fallito"  {{#if (eq filtri.esito "fallito")}}selected{{/if}}>❌ Fallito</option>
+    </select>
+    <button type="submit" class="btn btn-secondary">Filtra</button>
+    <a href="/admin/log" class="btn btn-outline">Reset</a>
+  </form>
+</div>
+
+<div class="section-card">
+  <div class="table-responsive">
+    <table class="admin-table">
+      <thead>
+        <tr><th>Data/Ora</th><th>Utente</th><th>IP</th><th>Esito</th></tr>
+      </thead>
+      <tbody>
+        {{#each righe}}
+        <tr>
+          <td class="text-muted small">{{created_at}}</td>
+          <td>
+            {{#if nome}}{{cognome}} {{nome}}<br><span class="text-muted small">@{{username_tentato}}</span>
+            {{else}}{{username_tentato}}{{/if}}
+          </td>
+          <td class="text-muted small">{{ip_address}}</td>
+          <td>
+            {{#if (eq esito "successo")}}
+              <span class="badge badge-ok">✅ Successo</span>
+            {{else}}
+              <span class="badge badge-err">❌ Fallito</span>
+            {{/if}}
+          </td>
+        </tr>
+        {{else}}
+        <tr><td colspan="4" class="text-center text-muted">Nessun log trovato</td></tr>
+        {{/each}}
+      </tbody>
+    </table>
+  </div>
+
+  {{!-- Paginazione --}}
+  {{#if (gt pages 1)}}
+  <div class="pagination mt-3">
+    {{#if (gt page 1)}}
+      <a href="?page={{subtract page 1}}&q={{filtri.q}}&esito={{filtri.esito}}" class="page-btn">← Prec</a>
+    {{/if}}
+    <span class="page-info">Pagina {{page}} di {{pages}}</span>
+    {{#if (lt page pages)}}
+      <a href="?page={{add page 1}}&q={{filtri.q}}&esito={{filtri.esito}}" class="page-btn">Succ →</a>
+    {{/if}}
+  </div>
+  {{/if}}
+</div>
