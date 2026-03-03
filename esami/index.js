@@ -64,6 +64,7 @@ router.use('/admin',      require('./routes/admin'));
 
 // ── Home: redirect in base al ruolo ─────────────────────────
 router.get('/', (req, res) => {
+  console.log('ESAMI HIT - user:', req.session.user);
   if (!req.session.user) return res.redirect('/esami/login');
   const role = req.session.user.role;
   if (role === 'student')    return res.redirect('/esami/student');

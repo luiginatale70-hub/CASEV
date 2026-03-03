@@ -1,57 +1,55 @@
 const bcrypt = require('bcryptjs');
 const { get } = require('./db');
 
+// Mappa ruoli italiani → inglesi per compatibilità modulo esami
+const ROLE_MAP = {
+  admin:       'admin',
+  admin_esami: 'admin',
+  istruttore:  'instructor',
+  gestore:     'instructor',
+  allievo:     'student'
+};
+
 function requireAuth(req, res, next) {
-  if (!req.session.user) return res.redirect('/login');
+  if (!req.session.user) return res.redirect('/auth/login');
   next();
 }
 
 function requireRole(...roles) {
   return (req, res, next) => {
-    if (!req.session.user) return res.redirect('/login');
-    if (!roles.includes(req.session.user.role)) {
-      return res.status(403).render('error', {
-        title: 'Accesso negato',
-        message: 'Permessi insufficienti.'
-      });
+    if (!req.session.user) return res.redirect('/auth/login');
+    const role = req.session.user.role || ROLE_MAP[req.session.user.ruolo] || 'student';
+    if (!req.session.user.role) req.session.user.role = role;
+    if (!roles.includes(role)) {
+      return res.status(403).render('error', { title: 'Accesso negato', message: 'Permessi insufficienti.' });
     }
     next();
   };
 }
 
-/**
- * Admin OR Instructor
- */
 function requireAnyRole(...roles) {
   return (req, res, next) => {
-    if (!req.session.user) return res.redirect('/login');
-    if (!roles.includes(req.session.user.role)) {
-      return res.status(403).render('error', {
-        title: 'Accesso negato',
-        message: 'Permessi insufficienti.'
-      });
+    if (!req.session.user) return res.redirect('/auth/login');
+    const role = req.session.user.role || ROLE_MAP[req.session.user.ruolo] || 'student';
+    if (!req.session.user.role) req.session.user.role = role;
+    if (!roles.includes(role)) {
+      return res.status(403).render('error', { title: 'Accesso negato', message: 'Permessi insufficienti.' });
     }
     next();
   };
 }
 
 async function getUserByEmail(email) {
-  return get('SELECT *, ruolo as role FROM utenti WHERE email = ?', [email]);
+  const u = await get('SELECT *, ruolo as role FROM utenti WHERE (email=? OR username=?) AND attivo=1', [email, email]);
+  return u;
 }
 
 async function getUserById(id) {
-  return get('SELECT *, ruolo as role FROM utenti WHERE id = ?', [id]);
+  return get('SELECT *, ruolo as role FROM utenti WHERE id=?', [id]);
 }
 
 function verifyPassword(user, password) {
   return bcrypt.compareSync(password, user.password_hash);
 }
 
-module.exports = {
-  requireAuth,
-  requireRole,
-  requireAnyRole,
-  getUserByEmail,
-  getUserById,
-  verifyPassword
-};
+module.exports = { requireAuth, requireRole, requireAnyRole, getUserByEmail, getUserById, verifyPassword };

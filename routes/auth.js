@@ -40,13 +40,21 @@ router.post('/login', async (req, res) => {
       [utente.id, username, ip, ua]
     );
 
-    req.session.user = {
-      id: utente.id,
-      username: utente.username,
-      nome: utente.nome,
-      cognome: utente.cognome,
-      ruolo: utente.ruolo
-    };
+   const ROLE_MAP = {
+  admin: 'admin', admin_esami: 'admin',
+  gestore: 'instructor', istruttore: 'instructor',
+  allievo: 'student'
+};
+
+req.session.user = {
+  id:       utente.id,
+  username: utente.username,
+  nome:     utente.nome,
+  cognome:  utente.cognome,
+  email:    utente.email || null,
+  ruolo:    utente.ruolo,
+  role:     ROLE_MAP[utente.ruolo] || 'student'
+};
 
     req.flash('success', `Benvenuto, ${utente.nome}!`);
     res.redirect('/');
