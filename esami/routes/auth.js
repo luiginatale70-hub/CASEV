@@ -63,7 +63,20 @@ router.post('/change-password', requireAuth,
   }
 );
 
-// GET /ping keepalive
-router.get('/ping', (req, res) => res.json({ ok: true }));
+// GET + POST /esami/ping — keepalive sessione
+// chiamato dal client ogni volta che l'utente clicca "Resta connesso"
+router.get('/ping', (req, res) => {
+  if (req.session && req.session.user) {
+    req.session.lastActivity = Date.now();
+  }
+  res.json({ ok: true });
+});
+
+router.post('/ping', (req, res) => {
+  if (req.session && req.session.user) {
+    req.session.lastActivity = Date.now();
+  }
+  res.json({ ok: true });
+});
 
 module.exports = router;

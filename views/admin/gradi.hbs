@@ -1,0 +1,143 @@
+{{! views/admin/gradi.hbs }}
+<div class="page-header">
+  <h1 class="page-title">🎖️ Gestione Gradi</h1>
+  <button class="btn btn-primary" onclick="document.getElementById('modal-nuovo').style.display='flex'">+ Nuovo Grado</button>
+</div>
+
+<div class="section-card">
+  <table class="admin-table">
+    <thead>
+      <tr><th>Codice</th><th>Specializzazione</th><th>Descrizione</th><th>Categoria</th><th>Ordine</th><th>Stato</th><th>Azioni</th></tr>
+    </thead>
+    <tbody>
+      {{#each gradi}}
+      <tr class="{{#unless attivo}}row-inactive{{/unless}}">
+        <td><span style="font-family:monospace;font-weight:600;">{{this.codice}}</span></td>
+        <td><span style="font-family:monospace;">{{this.specializzazione}}</span></td>
+        <td>{{this.descrizione}}</td>
+        <td><span class="badge role-cat">{{this.categoria}}</span></td>
+        <td style="text-align:center;">{{this.ordine}}</td>
+        <td>{{#if this.attivo}}<span class="badge badge-ok">Attivo</span>{{else}}<span class="badge badge-err">Inattivo</span>{{/if}}</td>
+        <td>
+          <div class="action-btns">
+            <button class="btn-icon" onclick="openModifica({{this.id}},'{{this.codice}}','{{this.specializzazione}}','{{this.descrizione}}','{{this.categoria}}',{{this.ordine}},{{this.attivo}})">✏️</button>
+            <form method="post" action="/admin/gradi/{{this.id}}/elimina" style="display:inline"
+                  onsubmit="return confirm('Eliminare il grado {{this.codice}}?')">
+              <button class="btn-icon btn-danger">🗑️</button>
+            </form>
+          </div>
+        </td>
+      </tr>
+      {{else}}
+      <tr><td colspan="7" class="text-center text-muted">Nessun grado configurato</td></tr>
+      {{/each}}
+    </tbody>
+  </table>
+</div>
+
+<!-- Modal Nuovo -->
+<div id="modal-nuovo" class="modal-overlay" style="display:none">
+  <div class="modal-box" style="max-width:520px;">
+    <div class="modal-header">
+      <h3>+ Nuovo Grado</h3>
+      <button onclick="document.getElementById('modal-nuovo').style.display='none'" class="modal-close">✕</button>
+    </div>
+    <form method="post" action="/admin/gradi/nuovo" accept-charset="UTF-8">
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Codice *</label>
+          <input type="text" name="codice" class="form-input" required placeholder="Es. TV">
+        </div>
+        <div class="form-group">
+          <label>Specializzazione</label>
+          <input type="text" name="specializzazione" class="form-input" placeholder="Es. PIL, Np/Ov, 1° Cl.">
+        </div>
+        <div class="form-group">
+          <label>Ordine</label>
+          <input type="number" name="ordine" class="form-input" value="0" min="0">
+        </div>
+        <div class="form-group" style="grid-column:1/-1;">
+          <label>Descrizione *</label>
+          <input type="text" name="descrizione" class="form-input" required placeholder="Es. Tenente di Vascello">
+        </div>
+        <div class="form-group" style="grid-column:1/-1;">
+          <label>Categoria</label>
+          <select name="categoria" class="form-select">
+            <option value="Tutti">Tutti</option>
+            <option value="Piloti">Piloti</option>
+            <option value="Operatori di volo">Operatori di volo</option>
+            <option value="Tecnici di volo">Tecnici di volo</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" onclick="document.getElementById('modal-nuovo').style.display='none'" class="btn btn-outline">Annulla</button>
+        <button type="submit" class="btn btn-primary">Salva</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal Modifica -->
+<div id="modal-modifica" class="modal-overlay" style="display:none">
+  <div class="modal-box" style="max-width:520px;">
+    <div class="modal-header">
+      <h3>✏️ Modifica Grado</h3>
+      <button onclick="document.getElementById('modal-modifica').style.display='none'" class="modal-close">✕</button>
+    </div>
+    <form id="form-modifica" method="post" accept-charset="UTF-8">
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Codice *</label>
+          <input type="text" name="codice" id="mod-codice" class="form-input" required>
+        </div>
+        <div class="form-group">
+          <label>Specializzazione</label>
+          <input type="text" name="specializzazione" id="mod-specializzazione" class="form-input" placeholder="Es. PIL, Np/Ov, 1° Cl.">
+        </div>
+        <div class="form-group">
+          <label>Ordine</label>
+          <input type="number" name="ordine" id="mod-ordine" class="form-input" min="0">
+        </div>
+        <div class="form-group" style="grid-column:1/-1;">
+          <label>Descrizione *</label>
+          <input type="text" name="descrizione" id="mod-descrizione" class="form-input" required>
+        </div>
+        <div class="form-group" style="grid-column:1/-1;">
+          <label>Categoria</label>
+          <select name="categoria" id="mod-categoria" class="form-select">
+            <option value="Tutti">Tutti</option>
+            <option value="Piloti">Piloti</option>
+            <option value="Operatori di volo">Operatori di volo</option>
+            <option value="Tecnici di volo">Tecnici di volo</option>
+          </select>
+        </div>
+        <div class="form-group" style="grid-column:1/-1;">
+          <label>
+            <input type="checkbox" name="attivo" id="mod-attivo" value="1"> Attivo
+          </label>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" onclick="document.getElementById('modal-modifica').style.display='none'" class="btn btn-outline">Annulla</button>
+        <button type="submit" class="btn btn-primary">Salva</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+function openModifica(id, codice, specializzazione, descrizione, categoria, ordine, attivo) {
+  document.getElementById('mod-codice').value            = codice          || '';
+  document.getElementById('mod-specializzazione').value  = specializzazione || '';
+  document.getElementById('mod-descrizione').value       = descrizione      || '';
+  document.getElementById('mod-categoria').value         = categoria        || 'Tutti';
+  document.getElementById('mod-ordine').value            = ordine;
+  document.getElementById('mod-attivo').checked          = attivo == 1;
+  document.getElementById('form-modifica').action        = '/admin/gradi/' + id + '/modifica';
+  document.getElementById('modal-modifica').style.display = 'flex';
+}
+document.querySelectorAll('.modal-overlay').forEach(m => {
+  m.addEventListener('click', e => { if(e.target===m) m.style.display='none'; });
+});
+</script>

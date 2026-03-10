@@ -16,10 +16,10 @@
           </tr>
         </thead>
         <tbody>
-          <% if (!rows.length) { %>
+          <% if (!exams.length) { %>
             <tr><td colspan="5" class="text-muted">Nessun esame assegnato.</td></tr>
           <% } %>
-          <% rows.forEach(e => { %>
+          <% exams.forEach(e => { %>
             <tr>
               <td><%= e.id %></td>
               <td><%= e.exam_type %></td>

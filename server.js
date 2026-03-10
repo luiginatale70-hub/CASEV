@@ -1,5 +1,14 @@
 // server.js - CASEV Portale (con modulo Esami integrato)
 require('dotenv').config();
+
+// ── Controllo variabili d'ambiente critiche ───────────────────
+if (!process.env.SESSION_SECRET) {
+  console.error('\n❌ ERRORE CRITICO: SESSION_SECRET non impostato nel file .env');
+  console.error('   Aggiungere: SESSION_SECRET=<stringa-lunga-e-casuale>');
+  console.error('   Esempio:    SESSION_SECRET=casev2026-' + Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2));
+  process.exit(1);
+}
+
 const express        = require('express');
 const session        = require('express-session');
 const flash          = require('connect-flash');
@@ -37,23 +46,29 @@ app.use(methodOverride('_method'));
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use(session({
-  secret: process.env.SESSION_SECRET || 'casev-secret-change-me',
+  secret: process.env.SESSION_SECRET,
   resave: false,
   saveUninitialized: false,
   rolling: true,
-  cookie: { maxAge: parseInt(process.env.SESSION_MAX_AGE) || 300000 }
+  cookie: { maxAge: parseInt(process.env.SESSION_MAX_AGE) || 3600000 } // default 1 ora
 }));
 
 app.use(flash());
+
 // ── Auto-logout per inattività ────────────────────────────────
-const SESSION_TIMEOUT_MS = parseInt(process.env.SESSION_TIMEOUT_MS) || 300000;
+const SESSION_TIMEOUT_MS = parseInt(process.env.SESSION_TIMEOUT_MS) || 3600000; // default 1 ora
 app.use((req, res, next) => {
+  // Non applicare a richieste statiche
+  if (req.path.startsWith('/public') || req.path.match(/\.(css|js|png|jpg|ico)$/)) {
+    return next();
+  }
   if (req.session && req.session.user) {
-    const now = Date.now();
+    const now  = Date.now();
     const last = req.session.lastActivity || now;
     if (now - last > SESSION_TIMEOUT_MS) {
+      const isEsami = req.path.startsWith('/esami');
       return req.session.destroy(() => {
-        res.redirect('/auth/login?timeout=1');
+        res.redirect(isEsami ? '/esami/login?timeout=1' : '/auth/login?timeout=1');
       });
     }
     req.session.lastActivity = now;
@@ -81,6 +96,19 @@ app.use('/admin',         require('./routes/admin'));
 
 // ── Modulo Esami ─────────────────────────────────────────────
 app.use('/esami', require('./esami'));
+
+// ── Fix redirect senza prefisso /esami ───────────────────────
+app.use((req, res, next) => {
+  const p = req.path;
+  if (
+    p.startsWith('/student/') ||
+    p.startsWith('/instructor/') ||
+    p === '/student' || p === '/instructor'
+  ) {
+    return res.redirect('/esami' + p);
+  }
+  next();
+});
 
 // ── 404 ──────────────────────────────────────────────────────
 app.use((req, res) => {

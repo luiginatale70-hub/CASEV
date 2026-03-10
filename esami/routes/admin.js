@@ -2,14 +2,16 @@ const express = require('express');
 const bcrypt  = require('bcryptjs');
 const { body, validationResult } = require('express-validator');
 const { run, get, all } = require('../src/db');
-const { requireRole, requireAnyRole } = require('../src/auth');
+const { requireRole } = require('../src/auth');
 const { randomPassword }     = require('../src/utils');
 const { sendMail, isConfigured } = require('../src/mailer');
 
 const router = express.Router();
-router.use(requireAnyRole('admin','admin_esami','istruttore'));
+router.use(requireRole('admin', 'instructor'));
 
-// Dashboard
+const BT = '`';
+
+// ── Dashboard ────────────────────────────────────────────────
 router.get('/', async (req, res) => {
   const [ct,st,et,at,tt,it,ot,ar,au] = await Promise.all([
     get('SELECT COUNT(*) AS c FROM esami_classes'),
@@ -30,7 +32,7 @@ router.get('/', async (req, res) => {
   });
 });
 
-// Classi
+// ── Classi ───────────────────────────────────────────────────
 router.get('/classes', async (req, res) => {
   const page=Math.max(1,parseInt(req.query.page||'1',10)), perPage=20, q=(req.query.q||'').trim();
   let where='1=1'; const params=[];
@@ -85,7 +87,7 @@ router.post('/classes/:id/delete',async(req,res)=>{
   res.redirect('/esami/admin/classes');
 });
 
-// Istruttori
+// ── Istruttori ───────────────────────────────────────────────
 router.get('/instructors/new',(req,res)=>res.render('admin/instructor_new',{title:'Nuovo istruttore'}));
 
 router.post('/instructors/new',
@@ -98,18 +100,34 @@ router.post('/instructors/new',
     const temp=randomPassword(10);
     const hash=bcrypt.hashSync(temp,12);
     const username=email.split('@')[0].replace(/[^a-zA-Z0-9._-]/g,'_');
+
+    // Crea utente con ruolo istruttore
     const u=await run('INSERT INTO utenti(username,password_hash,nome,cognome,email,ruolo) VALUES (?,?,?,?,?,?)',
       [username,hash,req.body.name,req.body.surname,email,'istruttore']);
-    await run('INSERT INTO esami_instructors(user_id,name,surname) VALUES (?,?,?)',[u.lastID,req.body.name,req.body.surname]);
+
+    // Crea record in esami_instructors
+    await run('INSERT INTO esami_instructors(user_id,name,surname) VALUES (?,?,?)',
+      [u.lastID,req.body.name,req.body.surname]);
+
+    // ── NUOVO: aggiunge istruttore anche in esami_students ──
+    // così può ricevere esami come qualsiasi allievo
+    const alreadyStudent=await get('SELECT id FROM esami_students WHERE user_id=?',[u.lastID]);
+    if(!alreadyStudent){
+      await run(
+        `INSERT INTO esami_students(user_id,${BT}rank${BT},name,surname,email,role_at_assignment) VALUES (?,?,?,?,?,?)`,
+        [u.lastID,'ISTR',req.body.name,req.body.surname,email,'instructor']
+      );
+    }
+
     await sendMail({to:email,subject:'Portale NAAF - Credenziali',
-      html:'<p>Sei stato registrato come ISTRUTTORE.</p><p>Login: '+email+'<br/>Password: '+temp+'</p>'});
-    if(!isConfigured()) req.flash('info','SMTP non attivo: pwd='+temp);
-    req.flash('success','Istruttore creato.');
+      html:'<p>Sei stato registrato come <strong>ISTRUTTORE</strong>.</p><p>Login: '+email+'<br/>Password temporanea: <strong>'+temp+'</strong></p><p>Cambia la password al primo accesso.</p>'});
+    if(!isConfigured()) req.flash('info','SMTP non attivo — password temporanea: '+temp);
+    req.flash('success','Istruttore creato e aggiunto alla lista partecipanti esami.');
     res.redirect('/esami/admin');
   }
 );
 
-// Allievi
+// ── Allievi ───────────────────────────────────────────────────
 router.get('/students',async(req,res)=>{
   const page=Math.max(1,parseInt(req.query.page||'1',10)),perPage=20;
   const command=(req.query.command||'').trim(),category=(req.query.category||'').trim(),q=(req.query.q||'').trim();
@@ -117,19 +135,28 @@ router.get('/students',async(req,res)=>{
   if(command){where+=' AND c.command=?';params.push(command);}
   if(category){where+=' AND c.category=?';params.push(category);}
   if(q){
-    where+=' AND (s.'+BT+'rank'+BT+' LIKE ? OR s.name LIKE ? OR s.surname LIKE ? OR s.email LIKE ? OR c.name LIKE ?)';
+    where+=` AND (s.${BT}rank${BT} LIKE ? OR s.name LIKE ? OR s.surname LIKE ? OR s.email LIKE ? OR c.name LIKE ?)`;
     const l='%'+q+'%';params.push(l,l,l,l,l);
   }
   const tr=await get('SELECT COUNT(*) as cnt FROM esami_students s LEFT JOIN esami_classes c ON c.id=s.class_id WHERE '+where,params);
   const total=tr?tr.cnt:0,pages=Math.max(1,Math.ceil(total/perPage)),sp=Math.min(page,pages);
-  const rows=await all('SELECT s.*,c.name as class_name,c.command,c.category FROM esami_students s LEFT JOIN esami_classes c ON c.id=s.class_id WHERE '+where+' ORDER BY s.created_at DESC LIMIT ? OFFSET ?',[...params,perPage,(sp-1)*perPage]);
+  const rows=await all(
+    `SELECT s.*,c.name as class_name,c.command,c.category,
+            COALESCE(s.role_at_assignment,'allievo') as role_label
+     FROM esami_students s
+     LEFT JOIN esami_classes c ON c.id=s.class_id
+     WHERE ${where}
+     ORDER BY s.role_at_assignment, s.surname, s.name
+     LIMIT ? OFFSET ?`,
+    [...params,perPage,(sp-1)*perPage]
+  );
   const cr=await all('SELECT DISTINCT command FROM esami_classes ORDER BY command');
-  res.render('admin/students',{title:'Gestione allievi',rows,page:sp,pages,total,filters:{command,category,q},commands:cr.map(r=>r.command)});
+  res.render('admin/students',{title:'Gestione partecipanti',rows,page:sp,pages,total,filters:{command,category,q},commands:cr.map(r=>r.command)});
 });
 
 router.get('/students/new',async(req,res)=>{
   const classes=await all('SELECT * FROM esami_classes ORDER BY command,category,name');
-  res.render('admin/student_new',{title:'Nuovo allievo',classes});
+  res.render('admin/student_new',{title:'Nuovo partecipante',classes});
 });
 
 router.post('/students/new',
@@ -144,11 +171,13 @@ router.post('/students/new',
     const username=email.split('@')[0].replace(/[^a-zA-Z0-9._-]/g,'_');
     const u=await run('INSERT INTO utenti(username,password_hash,nome,cognome,email,ruolo) VALUES (?,?,?,?,?,?)',
       [username,hash,req.body.name,req.body.surname,email,'allievo']);
-    await run('INSERT INTO esami_students(user_id,'+BT+'rank'+BT+',name,surname,qualification,email,class_id) VALUES (?,?,?,?,?,?,?)',
-      [u.lastID,req.body.rank,req.body.name,req.body.surname,req.body.qualification||null,email,req.body.class_id||null]);
+    await run(
+      `INSERT INTO esami_students(user_id,${BT}rank${BT},name,surname,qualification,email,class_id,role_at_assignment) VALUES (?,?,?,?,?,?,?,?)`,
+      [u.lastID,req.body.rank,req.body.name,req.body.surname,req.body.qualification||null,email,req.body.class_id||null,'allievo']
+    );
     await sendMail({to:email,subject:'Portale NAAF - Password provvisoria',
-      html:'<p>Sei stato registrato come ALLIEVO.</p><p>Login: '+email+'<br/>Password: '+temp+'</p>'});
-    if(!isConfigured()) req.flash('info','SMTP non attivo: pwd='+temp);
+      html:'<p>Sei stato registrato come <strong>ALLIEVO</strong>.</p><p>Login: '+email+'<br/>Password temporanea: <strong>'+temp+'</strong></p>'});
+    if(!isConfigured()) req.flash('info','SMTP non attivo — password temporanea: '+temp);
     req.flash('success','Allievo creato.');
     res.redirect('/esami/admin/students');
   }
@@ -156,9 +185,9 @@ router.post('/students/new',
 
 router.get('/students/:id/edit',async(req,res)=>{
   const student=await get('SELECT * FROM esami_students WHERE id=?',[req.params.id]);
-  if(!student) return res.status(404).render('error',{title:'Errore',message:'Allievo non trovato.'});
+  if(!student) return res.status(404).render('error',{title:'Errore',message:'Partecipante non trovato.'});
   const classes=await all('SELECT * FROM esami_classes ORDER BY command,category,name');
-  res.render('admin/student_edit',{title:'Modifica allievo',student,classes});
+  res.render('admin/student_edit',{title:'Modifica partecipante',student,classes});
 });
 
 router.post('/students/:id/edit',
@@ -166,9 +195,11 @@ router.post('/students/:id/edit',
   async(req,res)=>{
     const id=Number(req.params.id);
     const student=await get('SELECT * FROM esami_students WHERE id=?',[id]);
-    if(!student){req.flash('error','Allievo non trovato.');return res.redirect('/esami/admin/students');}
-    await run('UPDATE esami_students SET '+BT+'rank'+BT+'=?,name=?,surname=?,qualification=?,class_id=? WHERE id=?',
-      [req.body.rank,req.body.name,req.body.surname,req.body.qualification||null,req.body.class_id||null,id]);
+    if(!student){req.flash('error','Partecipante non trovato.');return res.redirect('/esami/admin/students');}
+    await run(
+      `UPDATE esami_students SET ${BT}rank${BT}=?,name=?,surname=?,qualification=?,class_id=? WHERE id=?`,
+      [req.body.rank,req.body.name,req.body.surname,req.body.qualification||null,req.body.class_id||null,id]
+    );
     req.flash('success','Dati aggiornati.');
     res.redirect('/esami/admin/students');
   }
@@ -178,25 +209,25 @@ router.post('/students/:id/delete',async(req,res)=>{
   const id=Number(req.params.id);
   const student=await get('SELECT * FROM esami_students WHERE id=?',[id]);
   if(student) await run('DELETE FROM utenti WHERE id=?',[student.user_id]);
-  req.flash('success','Allievo cancellato.');
+  req.flash('success','Partecipante cancellato.');
   res.redirect('/esami/admin/students');
 });
 
 router.post('/students/:id/reset-password',async(req,res)=>{
   const id=Number(req.params.id);
   const student=await get('SELECT * FROM esami_students WHERE id=?',[id]);
-  if(!student){req.flash('error','Allievo non trovato.');return res.redirect('/esami/admin/students');}
+  if(!student){req.flash('error','Partecipante non trovato.');return res.redirect('/esami/admin/students');}
   const temp=randomPassword(10),hash=bcrypt.hashSync(temp,12);
   await run('UPDATE utenti SET password_hash=? WHERE id=?',[hash,student.user_id]);
   await sendMail({to:student.email,subject:'Portale NAAF - Reset password',
-    html:'<p>Nuova password provvisoria: '+temp+'</p>'});
-  if(!isConfigured()) req.flash('info','SMTP non attivo: pwd='+temp);
+    html:'<p>Nuova password provvisoria: <strong>'+temp+'</strong></p>'});
+  if(!isConfigured()) req.flash('info','SMTP non attivo — password: '+temp);
   req.flash('success','Password resettata.');
   res.redirect('/esami/admin/students');
 });
 
-// Log (solo admin/admin_esami)
-router.get('/access',requireAnyRole('admin','admin_esami'),async(req,res)=>{
+// ── Log (solo admin) ─────────────────────────────────────────
+router.get('/access',requireRole('admin'),async(req,res)=>{
   const page=Math.max(1,parseInt(req.query.page||'1',10)),perPage=50;
   const filters={event:(req.query.event||'').trim(),q:(req.query.q||'').trim()};
   let where='1=1'; const params=[];
@@ -208,7 +239,7 @@ router.get('/access',requireAnyRole('admin','admin_esami'),async(req,res)=>{
   res.render('admin/access_log',{title:'Log accessi',rows,page,pages,filters});
 });
 
-router.get('/audit',requireAnyRole('admin','admin_esami'),async(req,res)=>{
+router.get('/audit',requireRole('admin'),async(req,res)=>{
   const page=Math.max(1,parseInt(req.query.page||'1',10)),perPage=50;
   const filters={action:(req.query.action||'').trim(),q:(req.query.q||'').trim()};
   let where='1=1'; const params=[];

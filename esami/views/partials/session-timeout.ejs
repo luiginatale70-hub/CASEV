@@ -1,39 +1,124 @@
-<%# Partial: session-timeout.ejs - includi nel layout o nel footer %>
+<%# Partial: session-timeout.ejs — incluso in foot.ejs per tutte le pagine autenticate %>
+<% if (typeof currentUser !== 'undefined' && currentUser) { %>
 <script>
 (function() {
-  var TIMEOUT_MS = 300000; // 5 minuti
-  var LOGIN_URL  = '/esami/auth/login?timeout=1';
+  var TIMEOUT_MS  = 3600000; // 1 ora — deve corrispondere a SESSION_TIMEOUT_MS nel .env
+  var WARNING_MS  = TIMEOUT_MS - 60000; // avviso 1 minuto prima
+  var LOGIN_URL   = '/esami/login?timeout=1';
+  var PING_URL    = '/esami/ping';
 
-  // BroadcastChannel: sincronizza logout su tutte le schede
-  var bc = (typeof BroadcastChannel !== 'undefined') ? new BroadcastChannel('casev_session') : null;
+  // BroadcastChannel: sincronizza logout su tutte le schede aperte
+  var bc = (typeof BroadcastChannel !== 'undefined')
+    ? new BroadcastChannel('casev_session') : null;
+
   if (bc) {
     bc.onmessage = function(e) {
-      if (e.data === 'logout') {
-        window.location.href = LOGIN_URL;
-      }
+      if (e.data === 'logout') window.location.href = LOGIN_URL;
+      if (e.data === 'active') resetTimer(); // altra scheda attiva → resetta timer
     };
   }
 
-  var timer;
+  var logoutTimer;
+  var warningTimer;
+  var warningShown = false;
+  var warningEl    = null;
 
+  // ── Crea banner avviso ────────────────────────────────────
+  function createWarningBanner() {
+    if (warningEl) return;
+    warningEl = document.createElement('div');
+    warningEl.id = 'casev-session-warning';
+    warningEl.style.cssText = [
+      'position:fixed', 'bottom:20px', 'right:20px', 'z-index:9999',
+      'background:#1a1a2e', 'color:#fff', 'padding:16px 20px',
+      'border-radius:12px', 'box-shadow:0 4px 20px rgba(0,0,0,.4)',
+      'font-family:Arial,sans-serif', 'font-size:14px',
+      'display:flex', 'align-items:center', 'gap:12px',
+      'max-width:340px', 'border-left:4px solid #e36c09'
+    ].join(';');
+
+    warningEl.innerHTML =
+      '<span>⚠️ Sessione in scadenza tra <strong id="casev-countdown">60</strong>s</span>' +
+      '<button id="casev-stay-btn" style="' +
+        'background:#2e75b6;color:#fff;border:none;padding:6px 14px;' +
+        'border-radius:8px;cursor:pointer;font-size:13px;white-space:nowrap' +
+      '">Resta connesso</button>';
+
+    document.body.appendChild(warningEl);
+
+    document.getElementById('casev-stay-btn').addEventListener('click', function() {
+      keepAlive();
+    });
+  }
+
+  // ── Countdown nel banner ─────────────────────────────────
+  var countdownInterval;
+  function startCountdown() {
+    var secs = 60;
+    var el = document.getElementById('casev-countdown');
+    if (el) el.textContent = secs;
+    countdownInterval = setInterval(function() {
+      secs--;
+      var el2 = document.getElementById('casev-countdown');
+      if (el2) el2.textContent = Math.max(0, secs);
+      if (secs <= 0) clearInterval(countdownInterval);
+    }, 1000);
+  }
+
+  function hideWarning() {
+    if (warningEl) { warningEl.remove(); warningEl = null; }
+    clearInterval(countdownInterval);
+    warningShown = false;
+  }
+
+  // ── Keepalive: chiama /ping per aggiornare lastActivity ──
+  function keepAlive() {
+    fetch(PING_URL, { credentials: 'same-origin' })
+      .then(function() {
+        hideWarning();
+        resetTimer();
+        if (bc) bc.postMessage('active');
+      })
+      .catch(function() {});
+  }
+
+  // ── Logout ────────────────────────────────────────────────
   function doLogout() {
+    hideWarning();
     if (bc) bc.postMessage('logout');
-    fetch('/esami/auth/logout', { method: 'POST', credentials: 'same-origin' })
+    fetch('/esami/logout', { method: 'POST', credentials: 'same-origin' })
       .catch(function() {})
       .finally(function() {
         window.location.href = LOGIN_URL;
       });
   }
 
+  // ── Reset timer ad ogni attività ─────────────────────────
   function resetTimer() {
-    clearTimeout(timer);
-    timer = setTimeout(doLogout, TIMEOUT_MS);
+    clearTimeout(logoutTimer);
+    clearTimeout(warningTimer);
+    hideWarning();
+
+    warningTimer = setTimeout(function() {
+      if (!warningShown) {
+        warningShown = true;
+        createWarningBanner();
+        startCountdown();
+      }
+    }, WARNING_MS);
+
+    logoutTimer = setTimeout(doLogout, TIMEOUT_MS);
   }
 
+  // ── Ascolta eventi utente ─────────────────────────────────
   ['click', 'keydown', 'mousemove', 'touchstart', 'scroll'].forEach(function(evt) {
-    document.addEventListener(evt, resetTimer, { passive: true });
+    document.addEventListener(evt, function() {
+      if (bc) bc.postMessage('active');
+      resetTimer();
+    }, { passive: true });
   });
 
   resetTimer();
 })();
 </script>
+<% } %>

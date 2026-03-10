@@ -34,18 +34,37 @@ router.get('/',async(req,res)=>{
   res.render('student/index',{title:'Area Allievo',student,exams});
 });
 
+router.get('/exams',async(req,res)=>{
+  const student=await get('SELECT * FROM esami_students WHERE user_id=?',[req.session.user.id]);
+  if(!student) return res.render('student/index',{title:'I miei esami',student:null,exams:[],rows:[]});
+  const exams=await all(["SELECT e.*, ","CASE e.status ","  WHEN 'ASSEGNATO' THEN 'In attesa' ","  WHEN 'SVOLTO'    THEN 'Completato' ","  ELSE e.status END AS status_label ","FROM esami_exams e ","WHERE e.student_id=? ","ORDER BY e.assigned_at DESC"].join(''),[student.id]);
+  res.render('student/exams',{title:'I miei esami',student,exams,rows:exams});
+});
+
+router.get('/exams/:id/start',async(req,res)=>{
+  const examId=Number(req.params.id);
+  const student=await get('SELECT * FROM esami_students WHERE user_id=?',[req.session.user.id]);
+  const exam=await get('SELECT * FROM esami_exams WHERE id=? AND student_id=?',[examId,student.id]);
+  if(!exam) return res.status(404).render('error',{title:'Errore',message:'Esame non trovato.'});
+  if(exam.status==='SVOLTO') return res.redirect('/esami/student/exams/'+examId+'/result');
+  if(!exam.started_at){
+    await run('UPDATE esami_exams SET started_at=NOW(),ends_at=DATE_ADD(NOW(),INTERVAL ? MINUTE) WHERE id=?',[exam.duration_minutes,examId]);
+    writeAudit(req,{action:'exam.start',entityType:'exam',entityId:examId,details:{student_id:student.id}}).catch(()=>{});
+  }
+  res.redirect('/esami/student/exams/'+examId+'/q/1');
+});
+
 router.post('/exams/:id/start',async(req,res)=>{
   const examId=Number(req.params.id);
   const student=await get('SELECT * FROM esami_students WHERE user_id=?',[req.session.user.id]);
   const exam=await get('SELECT * FROM esami_exams WHERE id=? AND student_id=?',[examId,student.id]);
   if(!exam) return res.status(404).render('error',{title:'Errore',message:'Esame non trovato.'});
-  if(exam.status==='SVOLTO') return res.redirect('/student/exams/'+examId+'/result');
+  if(exam.status==='SVOLTO') return res.redirect('/esami/student/exams/'+examId+'/result');
   if(!exam.started_at){
-    const endsAt=new Date(Date.now()+exam.duration_minutes*60000);
-    await run('UPDATE esami_exams SET started_at=NOW(),ends_at=? WHERE id=?',[endsAt,examId]);
+    await run('UPDATE esami_exams SET started_at=NOW(),ends_at=DATE_ADD(NOW(),INTERVAL ? MINUTE) WHERE id=?',[exam.duration_minutes,examId]);
     writeAudit(req,{action:'exam.start',entityType:'exam',entityId:examId,details:{student_id:student.id}}).catch(()=>{});
   }
-  res.redirect('/student/exams/'+examId+'/q/1');
+  res.redirect('/esami/student/exams/'+examId+'/q/1');
 });
 
 router.get('/exams/:id/q/:n',async(req,res)=>{
@@ -54,11 +73,11 @@ router.get('/exams/:id/q/:n',async(req,res)=>{
   const exam=await get('SELECT * FROM esami_exams WHERE id=? AND student_id=?',[examId,student.id]);
   if(!exam) return res.status(404).render('error',{title:'Errore',message:'Esame non trovato.'});
   const t=await ensureNotTimedOut(examId);
-  if(t.timedOut) return res.redirect('/student/exams/'+examId+'/timeout');
-  if(exam.status==='SVOLTO') return res.redirect('/student/exams/'+examId+'/result');
-  if(!exam.started_at) return res.redirect('/student/exams/'+examId+'/start');
+  if(t.timedOut) return res.redirect('/esami/student/exams/'+examId+'/timeout');
+  if(exam.status==='SVOLTO') return res.redirect('/esami/student/exams/'+examId+'/result');
+  if(!exam.started_at) return res.redirect('/esami/student/exams/'+examId+'/start');
   const items=await all('SELECT eq.id as eq_id,eq.chosen_key,eq.is_correct,q.question,q.opt_a,q.opt_b,q.opt_c,q.opt_d,q.topic FROM esami_exam_questions eq JOIN esami_questions q ON q.id=eq.question_id WHERE eq.exam_id=? ORDER BY eq.id',[examId]);
-  if(n<1||n>items.length) return res.redirect('/student/exams/'+examId+'/q/1');
+  if(n<1||n>items.length) return res.redirect('/esami/student/exams/'+examId+'/q/1');
   const examTimer=await buildExamTimer(examId);
   const unanswered=items.filter(i=>!i.chosen_key).length;
   const qNav=items.map((it,idx)=>({n:idx+1,answered:!!it.chosen_key}));
@@ -72,17 +91,17 @@ router.post('/exams/:id/q/:n/answer',async(req,res)=>{
   const exam=await get('SELECT * FROM esami_exams WHERE id=? AND student_id=?',[examId,student.id]);
   if(!exam) return res.status(404).render('error',{title:'Errore',message:'Esame non trovato.'});
   const t=await ensureNotTimedOut(examId);
-  if(t.timedOut) return res.redirect('/student/exams/'+examId+'/timeout');
-  if(exam.status==='SVOLTO') return res.redirect('/student/exams/'+examId+'/result');
+  if(t.timedOut) return res.redirect('/esami/student/exams/'+examId+'/timeout');
+  if(exam.status==='SVOLTO') return res.redirect('/esami/student/exams/'+examId+'/result');
   const items=await all('SELECT eq.id as eq_id,q.correct_key FROM esami_exam_questions eq JOIN esami_questions q ON q.id=eq.question_id WHERE eq.exam_id=? ORDER BY eq.id',[examId]);
   const idx=n-1;
-  if(idx<0||idx>=items.length) return res.redirect('/student/exams/'+examId+'/q/1');
+  if(idx<0||idx>=items.length) return res.redirect('/esami/student/exams/'+examId+'/q/1');
   const chosen=(req.body.choice||'').toUpperCase();
   const isCorrect=chosen?(chosen===items[idx].correct_key):null;
   await run('UPDATE esami_exam_questions SET chosen_key=?,is_correct=? WHERE id=?',[chosen||null,chosen?(isCorrect?1:0):null,items[idx].eq_id]);
   const isLast=n>=items.length;
-  if(isLast&&req.body.action!=='skip') return res.redirect('/student/exams/'+examId+'/finish');
-  return res.redirect('/student/exams/'+examId+'/q/'+(n<items.length?n+1:n));
+  if(isLast&&req.body.action!=='skip') return res.redirect('/esami/student/exams/'+examId+'/finish');
+  return res.redirect('/esami/student/exams/'+examId+'/q/'+(n<items.length?n+1:n));
 });
 
 router.post('/exams/:id/finish',finishExam);
@@ -93,16 +112,16 @@ async function finishExam(req,res){
   const exam=await get('SELECT * FROM esami_exams WHERE id=? AND student_id=?',[examId,student.id]);
   if(!exam) return res.status(404).render('error',{title:'Errore',message:'Esame non trovato.'});
   const t=await ensureNotTimedOut(examId);
-  if(t.timedOut) return res.redirect('/student/exams/'+examId+'/timeout');
-  if(exam.status==='SVOLTO') return res.redirect('/student/exams/'+examId+'/result');
+  if(t.timedOut) return res.redirect('/esami/student/exams/'+examId+'/timeout');
+  if(exam.status==='SVOLTO') return res.redirect('/esami/student/exams/'+examId+'/result');
   const items=await all('SELECT eq.*,q.correct_key FROM esami_exam_questions eq JOIN esami_questions q ON q.id=eq.question_id WHERE eq.exam_id=?',[examId]);
   const unanswered=items.filter(i=>!i.chosen_key).length;
-  if(unanswered>0){req.flash('error','Non puoi chiudere: mancano '+unanswered+' risposte.');return res.redirect('/student/exams/'+examId+'/q/1');}
+  if(unanswered>0){req.flash('error','Non puoi chiudere: mancano '+unanswered+' risposte.');return res.redirect('/esami/student/exams/'+examId+'/q/1');}
   const correct=items.filter(i=>i.is_correct===1).length,total=items.length;
   const score=(correct/total)*100,passed=score>=80?1:0;
   await run("UPDATE esami_exams SET status='SVOLTO',taken_at=NOW(),score_percent=?,passed=? WHERE id=?",[score,passed,examId]);
   writeAudit(req,{action:'exam.finish',entityType:'exam',entityId:examId,details:{student_id:student.id,total_questions:total,correct,score_percent:score,passed:!!passed}}).catch(()=>{});
-  res.redirect('/student/exams/'+examId+'/result');
+  res.redirect('/esami/student/exams/'+examId+'/result');
 }
 
 router.get('/exams/:id/timeout',async(req,res)=>{

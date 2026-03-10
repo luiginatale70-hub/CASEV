@@ -1,25 +1,23 @@
 {{! views/personale/index.hbs }}
 <div class="section-head">
   <div class="section-title">👥 Personale Equipaggi di Volo</div>
-  <a href="/personale/gestione/nuovo" class="btn btn-primary">➕ Aggiungi Personale</a>
+  <a href="/admin/utenti" class="btn btn-primary">➕ Aggiungi Personale</a>
 </div>
-
-<!-- Filtri -->
 <div class="card" style="margin-bottom:20px;">
   <div class="card-body">
     <form action="/personale" method="GET" class="filter-form">
       <div class="filter-row">
         <div class="form-group">
           <label>Cerca</label>
-          <input type="text" name="cerca" value="{{filtri.cerca}}" placeholder="Nome, cognome, matricola...">
+          <input type="text" name="cerca" value="{{filtri.cerca}}" placeholder="Nome, cognome, matricola, email...">
         </div>
         <div class="form-group">
           <label>Categoria</label>
           <select name="categoria">
             <option value="">Tutte</option>
-            <option value="pilota" {{#if (eq filtri.categoria "pilota")}}selected{{/if}}>Pilota</option>
-            <option value="operatore" {{#if (eq filtri.categoria "operatore")}}selected{{/if}}>Operatore</option>
-            <option value="tecnico" {{#if (eq filtri.categoria "tecnico")}}selected{{/if}}>Tecnico</option>
+            <option value="Piloti"            {{#if (eq filtri.categoria "Piloti")}}selected{{/if}}>Piloti</option>
+            <option value="Operatori di volo" {{#if (eq filtri.categoria "Operatori di volo")}}selected{{/if}}>Operatori di volo</option>
+            <option value="Tecnici di volo"   {{#if (eq filtri.categoria "Tecnici di volo")}}selected{{/if}}>Tecnici di volo</option>
           </select>
         </div>
         <div class="form-group">
@@ -29,6 +27,7 @@
             <option value="attivo">Attivo</option>
             <option value="sospeso">Sospeso</option>
             <option value="in_quiescenza">In quiescenza</option>
+            <option value="trasferito">Trasferito</option>
           </select>
         </div>
         <button type="submit" class="btn btn-primary" style="align-self:flex-end;">🔍 Cerca</button>
@@ -36,21 +35,12 @@
     </form>
   </div>
 </div>
-
 <div class="card">
   <div class="card-body" style="padding:0;">
     {{#if personale}}
     <table class="table">
       <thead>
-        <tr>
-          <th>Matricola</th>
-          <th>Cognome e Nome</th>
-          <th>Grado</th>
-          <th>Categoria</th>
-          <th>Sede</th>
-          <th>Stato</th>
-          <th></th>
-        </tr>
+        <tr><th>Matricola</th><th>Cognome e Nome</th><th>Grado</th><th>Categoria</th><th>Sede</th><th>Stato</th><th></th></tr>
       </thead>
       <tbody>
         {{#each personale}}
@@ -64,8 +54,12 @@
             {{#if (eq this.stato "attivo")}}<span class="tag tag-green">attivo</span>{{/if}}
             {{#if (eq this.stato "sospeso")}}<span class="tag tag-red">sospeso</span>{{/if}}
             {{#if (eq this.stato "in_quiescenza")}}<span class="tag tag-gold">quiescenza</span>{{/if}}
+            {{#if (eq this.stato "trasferito")}}<span class="tag tag-gold">trasferito</span>{{/if}}
           </td>
-          <td><a href="/personale/{{this.id}}" class="btn btn-ghost btn-sm">📋 Scheda</a></td>
+          <td>
+            <a href="/personale/{{this.id}}" class="btn btn-ghost btn-sm">📋 Scheda</a>
+            <a href="/personale/{{this.id}}/modifica" class="btn btn-ghost btn-sm">✏️ Modifica</a>
+          </td>
         </tr>
         {{/each}}
       </tbody>
@@ -73,7 +67,7 @@
     {{else}}
     <div style="text-align:center;padding:48px;color:var(--text-muted);">
       <div style="font-size:48px;">👥</div>
-      <p>Nessun personale trovato.</p>
+      <p>Nessun personale trovato. <a href="/admin/utenti">Aggiungi dal pannello utenti →</a></p>
     </div>
     {{/if}}
   </div>

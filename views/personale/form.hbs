@@ -1,0 +1,117 @@
+{{! views/personale/form.hbs }}
+<div class="section-head">
+  <div class="section-title">{{#if isEdit}}✏️modificato {{else}}➕ Nuovo Personale EFV{{/if}}</div>
+  <a href="/personale" class="btn btn-ghost">← Torna alla lista</a>
+</div>
+
+<div class="card" style="max-width:800px;">
+  <div class="card-body">
+    <form action="{{action}}" method="POST">
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+
+        <div class="form-group">
+          <label>Cognome *</label>
+          <input type="text" name="cognome" class="form-control" required value="{{persona.cognome}}">
+        </div>
+
+        <div class="form-group">
+          <label>Nome *</label>
+          <input type="text" name="nome" class="form-control" required value="{{persona.nome}}">
+        </div>
+
+        <div class="form-group">
+          <label>Grado</label>
+          <select name="grado" class="form-control">
+            <option value="">-- Seleziona --</option>
+            {{#each gradi}}
+            <option value="{{this.codice}}" {{#if (eq ../persona.grado this.codice)}}selected{{/if}}>
+              {{this.codice}} — {{this.descrizione}}
+            </option>
+            {{/each}}
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Matricola</label>
+          <input type="text" name="matricola" class="form-control"
+                 value="{{persona.matricola}}" placeholder="Es. GC-12345">
+        </div>
+
+        <div class="form-group">
+          <label>Categoria</label>
+          <select name="categoria" class="form-control">
+            <option value="">-- Seleziona --</option>
+            <option value="Piloti"            {{#if (eq persona.categoria "Piloti")}}selected{{/if}}>Piloti</option>
+            <option value="Operatori di volo" {{#if (eq persona.categoria "Operatori di volo")}}selected{{/if}}>Operatori di volo</option>
+            <option value="Tecnici di volo"   {{#if (eq persona.categoria "Tecnici di volo")}}selected{{/if}}>Tecnici di volo</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Qualifica</label>
+          <select name="qualifica" class="form-control">
+            <option value="">-- Seleziona --</option>
+            <option value="Istruttore specialità" {{#if (eq persona.qualifica "Istruttore specialità")}}selected{{/if}}>Istruttore specialità</option>
+            <option value="Istruttore"            {{#if (eq persona.qualifica "Istruttore")}}selected{{/if}}>Istruttore</option>
+            <option value="Pronto Impiego"        {{#if (eq persona.qualifica "Pronto Impiego")}}selected{{/if}}>Pronto Impiego</option>
+            <option value="TACCO"                 {{#if (eq persona.qualifica "TACCO")}}selected{{/if}}>TACCO</option>
+            <option value="In Formazione"         {{#if (eq persona.qualifica "In Formazione")}}selected{{/if}}>In Formazione</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Email istituzionale</label>
+          <input type="email" name="email_istituzionale" class="form-control"
+                 value="{{persona.email_istituzionale}}" placeholder="nome.cognome@mit.gov.it">
+          <small style="color:var(--text-muted);">Usata come credenziale di accesso al portale.</small>
+        </div>
+
+        <div class="form-group">
+          <label>Telefono</label>
+          <input type="text" name="telefono" class="form-control" value="{{persona.telefono}}">
+        </div>
+
+        <div class="form-group">
+          <label>Sede assegnazione</label>
+          <input type="text" name="sede_assegnazione" class="form-control"
+                 value="{{persona.sede_assegnazione}}" placeholder="Es. Base Navale di Catania">
+        </div>
+
+        <div class="form-group">
+          <label>Stato</label>
+          <select name="stato" class="form-control">
+            <option value="attivo"        {{#if (eq persona.stato "attivo")}}selected{{/if}}>Attivo</option>
+            <option value="sospeso"       {{#if (eq persona.stato "sospeso")}}selected{{/if}}>Sospeso</option>
+            <option value="in_quiescenza" {{#if (eq persona.stato "in_quiescenza")}}selected{{/if}}>In quiescenza</option>
+            <option value="trasferito"    {{#if (eq persona.stato "trasferito")}}selected{{/if}}>Trasferito</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Data nascita</label>
+          <input type="date" name="data_nascita" class="form-control" value="{{persona.data_nascita}}">
+        </div>
+
+        <div class="form-group">
+          <label>Luogo nascita</label>
+          <input type="text" name="luogo_nascita" class="form-control" value="{{persona.luogo_nascita}}">
+        </div>
+
+      </div>
+
+      <div class="form-group" style="margin-bottom:20px;">
+        <label>Note</label>
+        <textarea name="note" class="form-control" rows="3">{{persona.note}}</textarea>
+      </div>
+
+      <div style="display:flex;gap:12px;">
+        <button type="submit" class="btn btn-primary">
+          {{#if isEdit}}💾 Salva modifiche{{else}}➕ Aggiungi personale{{/if}}
+        </button>
+        <a href="/personale" class="btn btn-ghost">Annulla</a>
+      </div>
+
+    </form>
+  </div>
+</div>

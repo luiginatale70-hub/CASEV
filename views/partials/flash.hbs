@@ -1,10 +1,9 @@
 {{#if success}}
-  {{#each success}}
-  <div class="alert alert-success">✅ {{this}}</div>
-  {{/each}}
+  {{#each success}}<div class="alert alert-success">✅ {{this}}</div>{{/each}}
+{{/if}}
+{{#if info}}
+  {{#each info}}<div class="alert alert-info">ℹ️ {{this}}</div>{{/each}}
 {{/if}}
 {{#if error}}
-  {{#each error}}
-  <div class="alert alert-error">⚠️ {{this}}</div>
-  {{/each}}
+  {{#each error}}<div class="alert alert-error">⚠️ {{this}}</div>{{/each}}
 {{/if}}

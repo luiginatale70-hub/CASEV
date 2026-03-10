@@ -1,3 +1,15 @@
 node_modules/
 .env
 archivio-test/
+.DS_Store
+._*
+*.rej
+uploads/
+data/*.db
+.env
+files/backup_*.sql
+*.DS_Store
+casev_db_export.sql
+_archivio_patch/
+fix_*.js
+data/*.db

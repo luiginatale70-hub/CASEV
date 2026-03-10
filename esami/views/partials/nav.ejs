@@ -16,15 +16,16 @@
       <!-- Timer -->
       <div class="ms-2">
         <%
-          const __rem0 = (typeof examTimer !== 'undefined' && examTimer && examTimer.remaining_seconds != null)
-            ? Math.max(0, Number(examTimer.remaining_seconds) || 0)
+          // FIX: il server passa remainingSeconds (camelCase), non remaining_seconds
+          const __rem0 = (typeof examTimer !== 'undefined' && examTimer && examTimer.remainingSeconds != null)
+            ? Math.max(0, Number(examTimer.remainingSeconds) || 0)
             : 0;
           const last5 = __rem0 <= 300;
         %>
         <span id="naafTimer" data-remaining="<%= __rem0 %>" data-exam-id="<%= typeof examId !== 'undefined' ? examId : '' %>">
           ⏱ <span id="naafTimerText">--:--</span>
         </span>
-        <% if (last5) { %>
+        <% if (last5 && __rem0 > 0) { %>
           <span class="badge bg-warning text-dark ms-2" style="font-weight:700;">⚠️ Ultimi 5 min</span>
         <% } %>
         <script>
@@ -33,7 +34,10 @@
             var out  = document.getElementById('naafTimerText');
             if (!wrap || !out) return;
             var remaining = parseInt(wrap.getAttribute('data-remaining'), 10);
-            if (isNaN(remaining)) remaining = 0;
+            if (isNaN(remaining) || remaining <= 0) {
+              out.textContent = '00:00';
+              return; // non partire se già scaduto o valore non valido
+            }
             var examId = wrap.getAttribute('data-exam-id');
             function fmt(s) {
               s = Math.max(0, s|0);
@@ -42,7 +46,7 @@
             function tick() {
               out.textContent = fmt(remaining);
               if (remaining <= 0) {
-                if (examId) window.location.href = '/student/exams/' + encodeURIComponent(examId) + '/timeout';
+                if (examId) window.location.href = '/esami/student/exams/' + encodeURIComponent(examId) + '/timeout';
                 return;
               }
               remaining -= 1;

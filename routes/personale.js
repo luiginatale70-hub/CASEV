@@ -4,83 +4,103 @@ const router  = express.Router();
 const db      = require('../config/db');
 const { isGestoreOrAdmin } = require('../middleware/auth');
 
-// Tutti protetti da login
 router.use(isGestoreOrAdmin);
 
-// Lista personale
 router.get('/', async (req, res, next) => {
   try {
     const { cerca, categoria, stato } = req.query;
-    let query = 'SELECT * FROM personale WHERE 1=1';
+    let where = "ruolo IN ('efv','istruttore','gestore')";
     const params = [];
-
     if (cerca) {
-      query += ' AND (cognome LIKE ? OR nome LIKE ? OR matricola LIKE ?)';
-      const s = `%${cerca}%`;
-      params.push(s, s, s);
+      where += ' AND (cognome LIKE ? OR nome LIKE ? OR matricola LIKE ? OR email LIKE ?)';
+      const s = '%' + cerca + '%'; params.push(s,s,s,s);
     }
-    if (categoria) { query += ' AND categoria=?'; params.push(categoria); }
-    if (stato)     { query += ' AND stato=?'; params.push(stato); }
-
-    query += ' ORDER BY cognome, nome';
-    const [personale] = await db.query(query, params);
-    res.render('personale/index', { title: 'Personale Equipaggi', personale, filtri: req.query });
+    if (categoria) { where += ' AND categoria=?'; params.push(categoria); }
+    if (stato)     { where += ' AND stato=?';     params.push(stato); }
+    const [personale] = await db.query('SELECT * FROM utenti WHERE ' + where + ' ORDER BY cognome, nome', params);
+    res.render('personale/index', { title: 'Personale EFV', personale, filtri: req.query });
   } catch (e) { next(e); }
 });
 
-// Scheda personale
-router.get('/:id', async (req, res, next) => {
+router.get('/:id(\\d+)', async (req, res, next) => {
   try {
-    const [[persona]] = await db.query('SELECT * FROM personale WHERE id=?', [req.params.id]);
+    const [[persona]] = await db.query('SELECT * FROM utenti WHERE id=?', [req.params.id]);
     if (!persona) return res.status(404).render('error', { titolo: 'Non trovato', msg: 'Personale non trovato.', layout: 'main' });
-    const [pratiche] = await db.query(
-      'SELECT * FROM pratiche WHERE personale_id=? ORDER BY data_scadenza ASC', [req.params.id]
+    const [[pRecord]] = await db.query(
+      'SELECT id FROM personale WHERE utente_id=? OR email_istituzionale=? LIMIT 1',
+      [persona.id, persona.email]
     );
-    res.render('personale/scheda', { title: `${persona.cognome} ${persona.nome}`, persona, pratiche });
+    const pratiche = pRecord
+      ? (await db.query('SELECT * FROM pratiche WHERE personale_id=? ORDER BY data_scadenza ASC', [pRecord.id]))[0]
+      : [];
+    res.render('personale/scheda', {
+      title: persona.cognome + ' ' + persona.nome,
+      persona: { ...persona, email_istituzionale: persona.email },
+      pratiche,
+      personaleId: pRecord ? pRecord.id : null
+    });
   } catch (e) { next(e); }
 });
 
-// Form nuovo
-router.get('/gestione/nuovo', (req, res) => {
-  res.render('personale/form', { title: 'Nuovo Personale', action: '/personale/gestione', method: 'POST' });
-});
-
-// Salva nuovo
-router.post('/gestione', async (req, res, next) => {
+router.get('/:id(\\d+)/modifica', async (req, res, next) => {
   try {
-    const { matricola, cognome, nome, grado, categoria, specializzazione,
-            data_nascita, luogo_nascita, sede_assegnazione, reparto,
-            data_immissione, stato, email_istituzionale, telefono, note } = req.body;
-
-    await db.query(
-      `INSERT INTO personale (matricola, cognome, nome, grado, categoria, specializzazione,
-       data_nascita, luogo_nascita, sede_assegnazione, reparto, data_immissione,
-       stato, email_istituzionale, telefono, note)
-       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
-      [matricola, cognome, nome, grado, categoria, specializzazione,
-       data_nascita||null, luogo_nascita, sede_assegnazione, reparto,
-       data_immissione||null, stato||'attivo', email_istituzionale, telefono, note]
-    );
-    req.flash('success', 'Personale aggiunto con successo.');
-    res.redirect('/personale');
+    const [[persona]] = await db.query('SELECT * FROM utenti WHERE id=?', [req.params.id]);
+    if (!persona) return res.status(404).render('error', { titolo: 'Non trovato', msg: 'Non trovato.', layout: 'main' });
+    const [gradi] = await db.query('SELECT * FROM gradi WHERE attivo=1 ORDER BY ordine, descrizione');
+    res.render('personale/form', {
+      title: 'Modifica — ' + persona.cognome + ' ' + persona.nome,
+      action: '/personale/' + persona.id + '/modifica',
+      persona: { ...persona, email_istituzionale: persona.email },
+      gradi,
+      isEdit: true
+    });
   } catch (e) { next(e); }
 });
 
-// Aggiungi pratica
-router.post('/:id/pratiche', async (req, res, next) => {
+router.post('/:id(\\d+)/modifica', async (req, res, next) => {
   try {
-    const { tipo, titolo, descrizione, numero_pratica, data_emissione, data_scadenza,
-            ente_emittente, percorso_file, nome_file, stato } = req.body;
+    const id = Number(req.params.id);
+    const { cognome, nome, grado, categoria, qualifica, data_nascita,
+            luogo_nascita, sede_assegnazione, stato, email_istituzionale,
+            telefono, note, matricola } = req.body;
     await db.query(
-      `INSERT INTO pratiche (personale_id, tipo, titolo, descrizione, numero_pratica,
-       data_emissione, data_scadenza, ente_emittente, percorso_file, nome_file, stato, inserito_da)
+      `UPDATE utenti SET cognome=?,nome=?,grado=?,categoria=?,qualifica=?,data_nascita=?,
+       luogo_nascita=?,sede_assegnazione=?,stato=?,email=?,matricola=?,telefono=?,note=? WHERE id=?`,
+      [cognome,nome,grado||null,categoria||null,qualifica||null,data_nascita||null,
+       luogo_nascita||null,sede_assegnazione||null,stato||'attivo',
+       email_istituzionale||null,matricola||null,telefono||null,note||null,id]
+    );
+    await db.query(
+      `UPDATE personale SET cognome=?,nome=?,grado=?,matricola=?,sede_assegnazione=?,
+       qualifica=?,data_nascita=?,luogo_nascita=?,stato=?,email_istituzionale=?,telefono=?,note=?
+       WHERE utente_id=? OR email_istituzionale=?`,
+      [cognome,nome,grado||null,matricola||null,sede_assegnazione||null,
+       qualifica||null,data_nascita||null,luogo_nascita||null,stato||'attivo',
+       email_istituzionale||null,telefono||null,note||null,id,email_istituzionale||'']
+    );
+    await db.query('UPDATE esami_students SET `rank`=?,name=?,surname=?,email=? WHERE user_id=?',
+      [grado||'',nome,cognome,email_istituzionale||'',id]);
+    req.flash('success', 'Dati aggiornati.');
+    res.redirect('/personale/' + id);
+  } catch (e) { next(e); }
+});
+
+router.post('/:id(\\d+)/pratiche', async (req, res, next) => {
+  try {
+    const utente_id = Number(req.params.id);
+    const [[pRecord]] = await db.query('SELECT id FROM personale WHERE utente_id=? LIMIT 1', [utente_id]);
+    if (!pRecord) { req.flash('error', 'Record personale non trovato.'); return res.redirect('/personale/' + utente_id); }
+    const { tipo, titolo, descrizione, numero_pratica, data_emissione,
+            data_scadenza, ente_emittente, percorso_file, nome_file, stato } = req.body;
+    await db.query(
+      `INSERT INTO pratiche (personale_id,tipo,titolo,descrizione,numero_pratica,
+       data_emissione,data_scadenza,ente_emittente,percorso_file,nome_file,stato,inserito_da)
        VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`,
-      [req.params.id, tipo, titolo, descrizione, numero_pratica,
-       data_emissione||null, data_scadenza||null, ente_emittente,
-       percorso_file, nome_file, stato||'valida', req.session.user.id]
+      [pRecord.id,tipo,titolo,descrizione,numero_pratica,data_emissione||null,
+       data_scadenza||null,ente_emittente,percorso_file,nome_file,stato||'valida',req.session.user.id]
     );
     req.flash('success', 'Pratica aggiunta.');
-    res.redirect(`/personale/${req.params.id}`);
+    res.redirect('/personale/' + utente_id);
   } catch (e) { next(e); }
 });
 
