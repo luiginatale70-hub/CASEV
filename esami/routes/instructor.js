@@ -180,7 +180,7 @@ router.get('/exams/:id/report.pdf', async (req, res) => {
   res.setHeader('Content-Disposition', 'inline; filename="naaf_exam_' + id + '.pdf"');
   const doc = new PDFDocument({ margin: 40 });
   doc.pipe(res);
-  doc.fontSize(18).text('PORTALE NAAF - Report Esame', { align: 'center' }).moveDown();
+  doc.fontSize(18).text(' Report Esame', { align: 'center' }).moveDown();
   doc.fontSize(11).text('ID: ' + exam.id).text('Partecipante: ' + exam.rank + ' ' + exam.surname + ' ' + exam.name).text('Tipologia: ' + exam.exam_type).text('Risultato: ' + (exam.score_percent != null ? Number(exam.score_percent).toFixed(1) + '%' : '-')).moveDown();
   items.forEach((it, idx) => {
     doc.fontSize(11).text((idx + 1) + '. ' + it.question);

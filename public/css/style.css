@@ -76,13 +76,13 @@ body {
 
 .nav-section { margin-bottom: 6px; }
 .nav-section-label {
-  font-size: 10px; font-weight: 600; color: rgba(255,255,255,0.28);
-  text-transform: uppercase; letter-spacing: 1.5px;
-  padding: 8px 20px 4px;
+    font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.55);
+    text-transform: uppercase; letter-spacing: 1.5px;
+    padding: 8px 20px 4px;
 }
 .nav-item {
   display: flex; align-items: center; gap: 11px;
-  padding: 10px 20px; color: rgba(255,255,255,0.62);
+  padding: 10px 20px; color: rgba(255,255,255,0.85);
   text-decoration: none; font-size: 13.5px; font-weight: 400;
   transition: all 0.15s; cursor: pointer; position: relative;
 }
@@ -111,7 +111,7 @@ body {
 .user-name { font-size: 12.5px; font-weight: 600; color: #fff; }
 .user-role { font-size: 11px; color: rgba(255,255,255,0.38); }
 .user-info { flex: 1; min-width: 0; }
-.logout-btn { color: rgba(255,255,255,0.3); text-decoration: none; font-size: 16px; }
+.logout-btn { color: #fff; background:#e63757; text-decoration: none; font-size: 13px; font-weight:600; padding:6px 12px; border-radius:6px; }
 .logout-btn:hover { color: #fff; }
 
 /* ── MAIN ── */
@@ -380,4 +380,5 @@ body {
 /* ────────────────────────────────────────────────────── */
 
 .role-cat { background:#e0f2fe; color:#0369a1; }
+
 

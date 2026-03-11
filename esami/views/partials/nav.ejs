@@ -11,7 +11,7 @@
 
       <!-- Logo testo CASEV -->
       <div style="color:var(--gold);font-weight:800;font-size:1rem;letter-spacing:2px;white-space:nowrap;">CASEV</div>
-      <div style="color:rgba(255,255,255,.4);font-size:.72rem;letter-spacing:1px;white-space:nowrap;display:none;" class="d-sm-block">ESAME IN CORSO</div>
+      <div style="color:rgba(255,255,255,0.85);font-size:.72rem;letter-spacing:1px;white-space:nowrap;display:none;" class="d-sm-block">ESAME IN CORSO</div>
 
       <!-- Timer -->
       <div class="ms-2">
@@ -101,7 +101,7 @@
     <div class="sidebar-header">
       <div class="sidebar-logo-area">
         <div class="sidebar-logo-icon" style="background:none; padding:0;">
-  <img src="/public/img/Logo-naaf.png" 
+  <img src="/img/Logo-naaf.png" 
        alt="CASEV" 
        style="width:42px; height:42px; object-fit:contain;">
 </div>
@@ -120,11 +120,13 @@
           <a href="/esami/login"><span class="nav-icon">🔑</span> Login</a>
         </div>
       <% } else { %>
-        <div class="nav-section">
-          <div class="nav-section-label">Principale</div>
-          <a href="/esami"><span class="nav-icon">🏠</span> Dashboard</a>
-        </div>
-
+        
+        <% // questo è un commento
+        // <div class="nav-section">
+  //        <div class="nav-section-label">Principale</div>
+    //      <a href="/esami"><span class="nav-icon">🏠</span> Dashboard</a>
+      //  </div>
+%>
         <% if (currentUser.role === 'student') { %>
         <div class="nav-section">
           <div class="nav-section-label">Area Allievo</div>
@@ -150,15 +152,14 @@
           <a href="/esami/admin"><span class="nav-icon">🛡️</span> Dashboard Admin</a>
           <a href="/esami/admin/students"><span class="nav-icon">👥</span> Allievi</a>
           <a href="/esami/admin/classes"><span class="nav-icon">🏫</span> Classi</a>
-          <a href="/esami/admin/audit"><span class="nav-icon">📊</span> Audit Log</a>
-          <a href="/esami/admin/access"><span class="nav-icon">🔐</span> Log Accessi</a>
           <a href="/esami/admin/exams"><span class="nav-icon">📌</span> Tutti gli Esami</a>
         </div>
         <% } %>
 
         <div class="nav-section">
           <div class="nav-section-label">Portale Principale</div>
-          <a href="http://localhost:3000" target="_blank"><span class="nav-icon">🌐</span> Portale CASEV</a>
+          <a href="http://localhost:3000"><span class="nav-icon">🌐</span> Portale CASEV</a>
+          <a href="http://localhost:3000/admin"><span class="nav-icon">📊</span> Dashboard Admin</a>
         </div>
       <% } %>
     </nav>
@@ -173,7 +174,7 @@
           <div class="user-name" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="<%= currentUser.email %>"><%= currentUser.email %></div>
           <div class="user-role"><%= currentUser.role %></div>
         </div>
-        <a href="/esami/logout" class="logout-btn" title="Esci">⏻</a>
+        <a href="/esami/logout" style="background:#e63757;color:#fff;border-radius:6px;padding:6px 10px;font-size:13px;font-weight:600;text-decoration:none;display:inline-block;" title="Esci">⏻ Esci</a>
       </div>
       <% } else { %>
       <a href="/esami/login" style="color:rgba(255,255,255,.5);font-size:.82rem;text-decoration:none;">🔑 Accedi</a>
@@ -218,3 +219,4 @@
     <div class="casev-content">
 
 <% } %>
+

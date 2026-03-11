@@ -1,4 +1,4 @@
-﻿<aside class="sidebar">
+<aside class="sidebar">
   <div class="sidebar-header">
     <div class="logo-area">
       <img src="/img/Logo-naaf.png" style="width:60px;height:60px;object-fit:contain;border-radius:10px;" alt="CASEV">
@@ -46,13 +46,14 @@
         <div class="user-name">{{user.cognome}} {{user.nome}}</div>
         <div class="user-role">{{user.ruolo}}</div>
       </div>
-      <a href="/auth/logout" class="logout-btn" title="Esci">⏻</a>
+      <a href="/auth/logout" class="logout-btn" title="Esci" style="background:#e63757;color:#fff;border-radius:6px;padding:6px 10px;font-size:13px;font-weight:600;text-decoration:none;">⏻ Esci</a>
     </div>
     {{else}}
     <a href="/auth/login" class="btn btn-outline-light w100">🔑 Accedi</a>
     {{/if}}
   </div>
 </aside>
+
 
 
 

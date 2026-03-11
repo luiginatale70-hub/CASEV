@@ -1,4 +1,4 @@
-﻿// routes/admin.js
+// routes/admin.js
 const express = require('express');
 const router  = express.Router();
 const bcrypt  = require('bcryptjs');
@@ -264,6 +264,80 @@ router.get('/log', async (req, res, next) => {
   } catch (e) { next(e); }
 });
 
+
+// â”€â”€ AUDIT & ACCESSI (log unificati) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+router.get('/accessi', async (req, res, next) => {
+  try {
+    const page = Math.max(1, parseInt(req.query.page||'1',10));
+    const perPage = 50;
+    const q = (req.query.q||'').trim();
+    let where = '1=1'; const params = [];
+    if (q) { where += ' AND (email LIKE ? OR ip LIKE ? OR event LIKE ?)'; const l='%'+q+'%'; params.push(l,l,l); }
+    const [[{cnt}]] = await db.query('SELECT COUNT(*) as cnt FROM esami_access_log WHERE '+where, params);
+    const pages = Math.max(1, Math.ceil(cnt/perPage));
+    const [rows] = await db.query(
+      'SELECT * FROM esami_access_log WHERE '+where+' ORDER BY created_at DESC LIMIT ? OFFSET ?',
+      [...params, perPage, (page-1)*perPage]
+    );
+    res.render('admin/accessi', { title: 'Log Accessi Esami', rows, page, pages, q, totale: cnt });
+  } catch(e) { next(e); }
+});
+
+router.get('/audit', async (req, res, next) => {
+  try {
+    const page = Math.max(1, parseInt(req.query.page||'1',10));
+    const perPage = 50;
+    const q = (req.query.q||'').trim();
+    let where = '1=1'; const params = [];
+    if (q) { where += ' AND (action LIKE ? OR actor_role LIKE ? OR entity_type LIKE ?)'; const l='%'+q+'%'; params.push(l,l,l); }
+    const [[{cnt}]] = await db.query('SELECT COUNT(*) as cnt FROM esami_audit_log WHERE '+where, params);
+    const pages = Math.max(1, Math.ceil(cnt/perPage));
+    const [rows] = await db.query(
+      'SELECT * FROM esami_audit_log WHERE '+where+' ORDER BY created_at DESC LIMIT ? OFFSET ?',
+      [...params, perPage, (page-1)*perPage]
+    );
+    res.render('admin/audit', { title: 'Audit Log Esami', rows, page, pages, q, totale: cnt });
+  } catch(e) { next(e); }
+});
+
+router.get('/accessi/csv', async (req, res, next) => {
+  try {
+    const [rows] = await db.query('SELECT * FROM esami_access_log ORDER BY created_at DESC LIMIT 5000');
+    let csv = 'ID,UserID,Email,Evento,IP,Data\n';
+    rows.forEach(r => {
+      csv += `${r.id},"${r.user_id||''}","${r.email||''}","${r.event||''}","${r.ip||''}","${r.created_at}"\n`;
+    });
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', 'attachment; filename="accessi.csv"');
+    res.send(csv);
+  } catch(e) { next(e); }
+});
+
+router.get('/audit/csv', async (req, res, next) => {
+  try {
+    const [rows] = await db.query('SELECT * FROM esami_audit_log ORDER BY created_at DESC LIMIT 5000');
+    let csv = 'ID,AttoreID,Ruolo,Azione,Entita,EntitaID,IP,Data\n';
+    rows.forEach(r => {
+      csv += `${r.id},"${r.actor_user_id||''}","${r.actor_role||''}","${r.action||''}","${r.entity_type||''}","${r.entity_id||''}","${r.ip||''}","${r.created_at}"\n`;
+    });
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', 'attachment; filename="audit.csv"');
+    res.send(csv);
+  } catch(e) { next(e); }
+});
+
+router.get('/log/csv', async (req, res, next) => {
+  try {
+    const [rows] = await db.query('SELECT la.*, u.nome, u.cognome FROM log_accessi la LEFT JOIN utenti u ON la.utente_id=u.id ORDER BY la.created_at DESC LIMIT 5000');
+    let csv = 'ID,Utente,Username,IP,Esito,Data\n';
+    rows.forEach(r => {
+      csv += `${r.id},"${r.cognome||''} ${r.nome||''}","${r.username_tentato||''}","${r.ip_address||''}","${r.esito}","${r.created_at}"\n`;
+    });
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', 'attachment; filename="log_accessi.csv"');
+    res.send(csv);
+  } catch(e) { next(e); }
+});
 module.exports = router;
 
 

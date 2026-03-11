@@ -33,7 +33,13 @@ app.engine('hbs', engine({
     ifRole: function(role, check, opts) {
       return role === check ? opts.fn(this) : opts.inverse(this);
     },
-    year: () => new Date().getFullYear()
+    year: () => new Date().getFullYear(),
+    if_eq: function(a, b, opts) { return a == b ? opts.fn(this) : opts.inverse(this); },
+    if_gt: function(a, b, opts) { return a > b ? opts.fn(this) : opts.inverse(this); },
+    if_lt: function(a, b, opts) { return a < b ? opts.fn(this) : opts.inverse(this); },
+    prev_page: function() { return (this.page||1) - 1; },
+    next_page: function() { return (this.page||1) + 1; },
+    formatDate: (d) => d ? new Date(d).toLocaleDateString('it-IT') + ' ' + new Date(d).toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'}) : '—'
   }
 }));
 app.set('view engine', 'hbs');
@@ -136,3 +142,7 @@ app.listen(PORT, '0.0.0.0', () => {
   console.log(`   Esami:  http://localhost:${PORT}/esami`);
   console.log(`   Ambiente: ${process.env.NODE_ENV || 'development'}\n`);
 });
+
+
+
+

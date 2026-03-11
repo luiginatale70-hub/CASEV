@@ -1,0 +1,67 @@
+<div class="page-header">
+  <h1 class="page-title">Audit Log Esami</h1>
+  <p class="page-sub">Registro delle operazioni nel modulo esami</p>
+</div>
+
+<div class="card mb-3">
+  <div class="card-body">
+    <form method="GET" action="/admin/audit" class="row g-2 align-items-end">
+      <div class="col-md-7">
+        <input type="text" name="q" class="form-control" value="{{q}}" placeholder="Cerca per azione, ruolo, entita...">
+      </div>
+      <div class="col-md-2">
+        <button type="submit" class="btn btn-primary w-100">Filtra</button>
+      </div>
+      <div class="col-md-1">
+        <a href="/admin/audit" class="btn btn-outline-secondary w-100">Reset</a>
+      </div>
+      <div class="col-md-2">
+        <a href="/admin/audit/csv" class="btn btn-outline-success w-100">CSV</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header">Totale: <strong>{{totale}}</strong> operazioni</div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover mb-0">
+        <thead>
+          <tr>
+            <th>Data/Ora</th>
+            <th>Ruolo</th>
+            <th>Azione</th>
+            <th>Entita</th>
+            <th>IP</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{#each rows}}
+          <tr>
+            <td style="font-size:13px;white-space:nowrap;">{{formatDateTime created_at}}</td>
+            <td><span class="badge bg-info text-dark">{{actor_role}}</span></td>
+            <td><span class="badge bg-primary">{{action}}</span></td>
+            <td style="font-size:13px;">{{entity_type}} {{#if entity_id}}#{{entity_id}}{{/if}}</td>
+            <td><code style="font-size:12px;">{{ip}}</code></td>
+          </tr>
+          {{/each}}
+          {{#unless rows.length}}
+          <tr><td colspan="5" class="text-center text-muted py-4">Nessuna operazione registrata</td></tr>
+          {{/unless}}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {{#if pages}}
+  <div class="card-footer d-flex justify-content-center gap-2">
+    {{#if_gt page 1}}
+    <a href="/admin/audit?page={{prev_page}}&q={{q}}" class="btn btn-sm btn-outline-primary">Prec</a>
+    {{/if_gt}}
+    <span class="btn btn-sm btn-light disabled">Pag {{page}} / {{pages}}</span>
+    {{#if_lt page pages}}
+    <a href="/admin/audit?page={{next_page}}&q={{q}}" class="btn btn-sm btn-outline-primary">Succ</a>
+    {{/if_lt}}
+  </div>
+  {{/if}}
+</div>
