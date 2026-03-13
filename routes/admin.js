@@ -68,7 +68,7 @@ router.get('/utenti', async (req, res, next) => {
 router.post('/utenti/nuovo', async (req, res, next) => {
   try {
     const { nome, cognome, email, ruolo, categoria, grado, matricola,
-            sede_assegnazione, qualifica, data_nascita, luogo_nascita, telefono, note } = req.body;
+            sede_assegnazione, qualifica, data_nascita, luogo_nascita, telefono, note, auth_type } = req.body;
 
     if (!nome || !cognome || !email || !ruolo) {
       req.flash('error', 'Nome, cognome, email e ruolo sono obbligatori.');
@@ -91,11 +91,12 @@ router.post('/utenti/nuovo', async (req, res, next) => {
 
     const [r] = await db.query(
       `INSERT INTO utenti (username, password_hash, nome, cognome, email, ruolo, categoria, grado,
-        matricola, sede_assegnazione, qualifica, data_nascita, luogo_nascita, telefono, note, stato, attivo)
-       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,'attivo',1)`,
+        matricola, sede_assegnazione, qualifica, data_nascita, luogo_nascita, telefono, note, stato, attivo, auth_type)
+       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,'attivo',1,?)`,
       [username, hash, nome.trim(), cognome.trim(), emailClean, ruolo,
        categoria||null, grado||null, matricola||null, sede_assegnazione||null,
-       qualifica||null, data_nascita||null, luogo_nascita||null, telefono||null, note||null]
+       qualifica||null, data_nascita||null, luogo_nascita||null, telefono||null, note||null,
+       auth_type === 'local' ? 'local' : 'ldap']
     );
     const userId = r.insertId;
 
@@ -136,14 +137,14 @@ router.post('/utenti/nuovo', async (req, res, next) => {
 router.post('/utenti/:id/modifica', async (req, res, next) => {
   try {
     const id = Number(req.params.id);
-    const { nome, cognome, email, ruolo, categoria, grado, specializzazione, matricola, sede_assegnazione, qualifica, telefono } = req.body;
+    const { nome, cognome, email, ruolo, categoria, grado, specializzazione, matricola, sede_assegnazione, qualifica, telefono, auth_type } = req.body;
     if (id === req.session.user.id && ruolo !== req.session.user.ruolo) {
       req.flash('error', 'Non puoi cambiare il tuo stesso ruolo.');
       return res.redirect('/admin/utenti');
     }
     await db.query(
-      `UPDATE utenti SET nome=?,cognome=?,email=?,ruolo=?,categoria=?,grado=?,specializzazione=?,matricola=?,sede_assegnazione=?,qualifica=?,telefono=? WHERE id=?`,
-      [nome||'', cognome||'', email||null, ruolo, categoria||null, grado||null, specializzazione||null, matricola||null, sede_assegnazione||null, qualifica||null, telefono||null, id]
+      `UPDATE utenti SET nome=?,cognome=?,email=?,ruolo=?,categoria=?,grado=?,specializzazione=?,matricola=?,sede_assegnazione=?,qualifica=?,telefono=?,auth_type=? WHERE id=?`,
+      [nome||'', cognome||'', email||null, ruolo, categoria||null, grado||null, specializzazione||null, matricola||null, sede_assegnazione||null, qualifica||null, telefono||null, auth_type === 'local' ? 'local' : 'ldap', id]
     );
     await db.query('UPDATE esami_students SET `rank`=?,name=?,surname=?,email=? WHERE user_id=?',
       [grado||'', nome||'', cognome||'', email||'', id]);

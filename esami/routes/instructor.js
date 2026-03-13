@@ -136,7 +136,45 @@ router.post('/exams/assign',
       if (uRow) studentUsername = uRow.username;
     } catch(e) {}
 
-    sendMail({ to: student.email, subject: 'CASEV - NAAF - Assegnazione Test Teorico', html: '<div style="font-family:sans-serif;max-width:600px"><div style="background:#0b1727;padding:20px 30px"><h2 style="color:#fff;margin:0">CASEV</h2><p style="color:#27bcfd;margin:4px 0 0;font-size:12px">Centro Addestramento Equipaggi di Volo</p></div><div style="padding:24px;border:1px solid #e5e7eb"><p>Gentile <strong>' + student.name + ' ' + student.surname + '</strong>,</p><p>Ti e stato assegnato un test teorico:</p><table style="width:100%;border-collapse:collapse;margin:16px 0"><tr><td style="padding:8px;background:#f9fafb;border:1px solid #e5e7eb;font-weight:600">Tipo</td><td style="padding:8px;border:1px solid #e5e7eb">' + examType + '</td></tr><tr><td style="padding:8px;background:#f9fafb;border:1px solid #e5e7eb;font-weight:600">Domande</td><td style="padding:8px;border:1px solid #e5e7eb">' + num + '</td></tr><tr><td style="padding:8px;background:#f9fafb;border:1px solid #e5e7eb;font-weight:600">Durata</td><td style="padding:8px;border:1px solid #e5e7eb">' + duration + ' minuti</td></tr></table><hr style="margin:16px 0;border:none;border-top:1px solid #e5e7eb"><p><strong>Credenziali di accesso:</strong></p><table style="width:100%;border-collapse:collapse;margin:8px 0 16px"><tr><td style="padding:8px;background:#f9fafb;border:1px solid #e5e7eb;font-weight:600">Username</td><td style="padding:8px;border:1px solid #e5e7eb;font-family:monospace">' + studentUsername + '</td></tr></table><p style="margin:24px 0 8px">Accedi al portale per svolgere il test:</p><a href="http://10.142.3.123/esami/auth/login" style="display:inline-block;background:#2c7be5;color:#fff;padding:12px 28px;border-radius:6px;text-decoration:none;font-weight:600">Accedi al Test</a><hr style="margin:24px 0;border:none;border-top:1px solid #e5e7eb"><p style="color:#748194;font-size:12px">CASEV - Portale Intranet GC</p></div></div>' }).catch(() => {});
+sendMail({
+  to: student.email,
+  subject: 'CASEV - NAAF - Assegnazione Test Teorico',
+  html:
+    '<div style="font-family:sans-serif;max-width:600px">' +
+      '<div style="background:#0b1727;padding:20px 30px">' +
+        '<h2 style="color:#fff;margin:0">CASEV</h2>' +
+        '<p style="color:#27bcfd;margin:4px 0 0;font-size:12px">Centro Addestramento Equipaggi di Volo</p>' +
+      '</div>' +
+      '<div style="padding:24px;border:1px solid #e5e7eb">' +
+        '<p>Gentile <strong>' + student.name + ' ' + student.surname + '</strong>,</p>' +
+        '<p>Ti e stato assegnato un test teorico:</p>' +
+        '<table style="width:100%;border-collapse:collapse;margin:16px 0">' +
+          '<tr><td style="padding:8px;background:#f9fafb;border:1px solid #e5e7eb;font-weight:600">Tipo</td>' +
+          '<td style="padding:8px;border:1px solid #e5e7eb">' + examType + '</td></tr>' +
+          '<tr><td style="padding:8px;background:#f9fafb;border:1px solid #e5e7eb;font-weight:600">Domande</td>' +
+          '<td style="padding:8px;border:1px solid #e5e7eb">' + num + '</td></tr>' +
+          '<tr><td style="padding:8px;background:#f9fafb;border:1px solid #e5e7eb;font-weight:600">Durata</td>' +
+          '<td style="padding:8px;border:1px solid #e5e7eb">' + duration + ' minuti</td></tr>' +
+        '</table>' +
+        '<hr style="margin:16px 0;border:none;border-top:1px solid #e5e7eb">' +
+        '<p><strong>Credenziali di accesso:</strong></p>' +
+        '<table style="width:100%;border-collapse:collapse;margin:8px 0 16px">' +
+          '<tr><td style="padding:8px;background:#f9fafb;border:1px solid #e5e7eb;font-weight:600">Username</td>' +
+                    '<td style="padding:8px;border:1px solid #e5e7eb;font-family:monospace">' + (student.name.toLowerCase() + '.' + student.surname.toLowerCase()) +
+ '</td></tr>' +
+        '</table>' +
+        '<p style="margin:24px 0 8px">Accedi al portale per svolgere il test - Se non non ricordi la password o sei al tuo primo accesso clicca su password dimenticata. </p>' +
+        '<a href="http://10.142.3.123/esami/login" style="display:inline-block;background:#2c7be5;color:#fff;padding:12px 28px;border-radius:6px;text-decoration:none;font-weight:600">Accedi al Test</a>' +
+        '<hr style="margin:24px 0;border:none;border-top:1px solid #e5e7eb">' +
+        '<p style="color:#748194;font-size:12px">CASEV - Portale Intranet GC</p>' +
+      '</div>' +
+    '</div>'
+}).catch(() => {});
+
+
+
+
+    
     req.flash('success', 'Esame assegnato a ' + student.name + ' ' + student.surname + ' (ID ' + ex.lastID + ').');
     writeAudit(req, { action: 'exam.assign', entityType: 'exam', entityId: ex.lastID, details: { student_id: student.id, exam_type: examType, num_questions: num } }).catch(() => {});
     res.redirect('/esami/instructor/exams');

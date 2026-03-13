@@ -59,11 +59,14 @@
           </span>
         </td>
         <td class="small text-muted">{{#if sede_assegnazione}}{{sede_assegnazione}}{{else}}—{{/if}}</td>
-        <td>{{#if attivo}}<span class="badge badge-ok">Attivo</span>{{else}}<span class="badge badge-err">Inattivo</span>{{/if}}</td>
+        <td>
+          {{#if attivo}}<span class="badge badge-ok">Attivo</span>{{else}}<span class="badge badge-err">Inattivo</span>{{/if}}
+          {{#if (eq auth_type "ldap")}}<span class="badge" style="background:#e8f0fe;color:#1a56db;margin-left:4px;">🔒 AD</span>{{/if}}
+        </td>
         <td>
           <div class="action-btns">
             <button class="btn-icon" title="Modifica"
-              onclick="openModifica({{id}},'{{username}}','{{nome}}','{{cognome}}','{{email}}','{{ruolo}}','{{categoria}}','{{grado}}','{{specializzazione}}','{{matricola}}','{{sede_assegnazione}}','{{qualifica}}','{{telefono}}')">✏️</button>
+              onclick="openModifica({{id}},'{{username}}','{{nome}}','{{cognome}}','{{email}}','{{ruolo}}','{{categoria}}','{{grado}}','{{specializzazione}}','{{matricola}}','{{sede_assegnazione}}','{{qualifica}}','{{telefono}}','{{auth_type}}')">✏️</button>
             <a class="btn-icon" href="/personale/{{id}}" title="Scheda">📋</a>
             <form method="post" action="/admin/utenti/{{id}}/toggle" style="display:inline">
               <button class="btn-icon">{{#if attivo}}🔴{{else}}🟢{{/if}}</button>
@@ -142,6 +145,14 @@
         <div class="form-group"><label>Telefono</label><input type="text" name="telefono" class="form-input"></div>
         <div class="form-group"><label>Data nascita</label><input type="date" name="data_nascita" class="form-input"></div>
         <div class="form-group"><label>Luogo nascita</label><input type="text" name="luogo_nascita" class="form-input"></div>
+        <div class="form-group">
+          <label>Tipo autenticazione</label>
+          <select name="auth_type" class="form-select">
+            <option value="ldap">🔒 Dominio AD (guardiacostiera.local)</option>
+            <option value="local">🔑 Password locale</option>
+          </select>
+          <small class="text-muted">Scegli "Dominio AD" per il personale di volo, "Password locale" solo per account amministrativi.</small>
+        </div>
       </div>
       <div class="form-group"><label>Note</label><textarea name="note" class="form-input" rows="2"></textarea></div>
       <div class="modal-footer">
@@ -208,6 +219,13 @@
         <div class="form-group"><label>Matricola</label><input type="text" name="matricola" id="mod-matricola" class="form-input"></div>
         <div class="form-group"><label>Sede assegnazione</label><input type="text" name="sede_assegnazione" id="mod-sede" class="form-input"></div>
         <div class="form-group"><label>Telefono</label><input type="text" name="telefono" id="mod-tel" class="form-input"></div>
+        <div class="form-group">
+          <label>Tipo autenticazione</label>
+          <select name="auth_type" id="mod-auth-type" class="form-select">
+            <option value="ldap">🔒 Dominio AD (guardiacostiera.local)</option>
+            <option value="local">🔑 Password locale</option>
+          </select>
+        </div>
       </div>
       <div class="modal-footer">
         <button type="button" onclick="document.getElementById('modal-modifica').style.display='none'" class="btn btn-outline">Annulla</button>
@@ -238,7 +256,7 @@
 </div>
 
 <script>
-function openModifica(id,username,nome,cognome,email,ruolo,categoria,grado,specializzazione,matricola,sede,qualifica,tel){
+function openModifica(id,username,nome,cognome,email,ruolo,categoria,grado,specializzazione,matricola,sede,qualifica,tel,authType){
   document.getElementById('mod-username').textContent        = username;
   document.getElementById('mod-nome').value                  = nome             || '';
   document.getElementById('mod-cognome').value               = cognome          || '';
@@ -251,6 +269,7 @@ function openModifica(id,username,nome,cognome,email,ruolo,categoria,grado,speci
   document.getElementById('mod-matricola').value             = matricola        || '';
   document.getElementById('mod-sede').value                  = sede             || '';
   document.getElementById('mod-tel').value                   = tel              || '';
+  document.getElementById('mod-auth-type').value             = authType         || 'ldap';
   document.getElementById('form-modifica').action            = '/admin/utenti/' + id + '/modifica';
   document.getElementById('modal-modifica').style.display    = 'flex';
 }
