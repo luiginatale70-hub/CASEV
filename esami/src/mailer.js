@@ -66,10 +66,10 @@ function getTransport() {
   return transporter;
 }
 
-async function sendMail({ to, subject, html }) {
+async function sendMail({ to, from, subject, html, cc }) {
   if (!isConfigured()) {
     console.log("[MAIL-DEV] SMTP non configurato. Email simulata:");
-    console.log({ to, subject, html });
+    console.log({ to, from, subject, cc, html });
     return { simulated: true };
   }
 
@@ -77,8 +77,9 @@ async function sendMail({ to, subject, html }) {
 
   try {
     const info = await transporter.sendMail({
-      from: process.env.SMTP_FROM || process.env.SMTP_USER,
+      from: from || process.env.SMTP_FROM || process.env.SMTP_USER,
       to,
+      cc: cc || undefined,
       subject,
       html,
     });

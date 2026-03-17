@@ -128,16 +128,24 @@ router.post('/exams/assign',
     const ex = await run("INSERT INTO esami_exams(student_id,instructor_user_id,exam_type,num_questions,topics_filter,duration_minutes,status,deferred) VALUES (?,?,?,?,?,?,'ASSEGNATO',0)", [student.id, req.session.user.id, examType, num, tLabel, duration]);
     for (const q of picked) await run('INSERT INTO esami_exam_questions(exam_id,question_id) VALUES (?,?)', [ex.lastID, q.id]);
 
-    // Recupera username dal DB principale
+    // Recupera username e dati istruttore dal DB principale
     let studentUsername = student.email;
+    let instructorEmail = process.env.SMTP_FROM || process.env.SMTP_USER;
+    let instructorName  = 'Istruttore CASEV';
     try {
       const db2 = require('../config/db');
       const [[uRow]] = await db2.query('SELECT username FROM utenti WHERE email=? LIMIT 1', [student.email]);
       if (uRow) studentUsername = uRow.username;
+      const [[iRow]] = await db2.query('SELECT email, nome, cognome FROM utenti WHERE id=? LIMIT 1', [req.session.user.id]);
+      if (iRow && iRow.email) {
+        instructorEmail = iRow.email;
+        instructorName  = (iRow.nome || '') + ' ' + (iRow.cognome || '');
+      }
     } catch(e) {}
 
 sendMail({
   to: student.email,
+  from: instructorEmail,
   subject: 'CASEV - NAAF - Assegnazione Test Teorico',
   html:
     '<div style="font-family:sans-serif;max-width:600px">' +
@@ -163,10 +171,10 @@ sendMail({
                     '<td style="padding:8px;border:1px solid #e5e7eb;font-family:monospace">' + (student.name.toLowerCase() + '.' + student.surname.toLowerCase()) +
  '</td></tr>' +
         '</table>' +
-        '<p style="margin:24px 0 8px">Accedi al portale per svolgere il test - Se non non ricordi la password o sei al tuo primo accesso clicca su password dimenticata. </p>' +
+        '<p style="margin:24px 0 8px">Accedi al portale per svolgere il test - Inserisci la tua password di accesso al dominio guardiacostiera. </p>' +
         '<a href="http://10.142.3.123/esami/login" style="display:inline-block;background:#2c7be5;color:#fff;padding:12px 28px;border-radius:6px;text-decoration:none;font-weight:600">Accedi al Test</a>' +
         '<hr style="margin:24px 0;border:none;border-top:1px solid #e5e7eb">' +
-        '<p style="color:#748194;font-size:12px">CASEV - Portale Intranet GC</p>' +
+        '<p style="color:#748194;font-size:12px">CASEV - Portale Intranet GC<br>Messaggio inviato da: ' + instructorName.trim() + ' &lt;' + instructorEmail + '&gt;</p>' +
       '</div>' +
     '</div>'
 }).catch(() => {});

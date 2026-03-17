@@ -121,6 +121,77 @@ async function finishExam(req,res){
   const score=(correct/total)*100,passed=score>=80?1:0;
   await run("UPDATE esami_exams SET status='SVOLTO',taken_at=NOW(),score_percent=?,passed=? WHERE id=?",[score,passed,examId]);
   writeAudit(req,{action:'exam.finish',entityType:'exam',entityId:examId,details:{student_id:student.id,total_questions:total,correct,score_percent:score,passed:!!passed}}).catch(()=>{});
+
+  // ── Mail esito: istruttore + napescara.addestramento@mit.gov.it ──
+  try {
+    const { sendMail } = require('../src/mailer');
+    const db2 = require('../config/db');
+
+    // Recupera email istruttore dal DB principale
+    const examFull = await get(
+      'SELECT e.*, s.`rank`, s.name, s.surname, s.email as student_email FROM esami_exams e JOIN esami_students s ON s.id=e.student_id WHERE e.id=?',
+      [examId]
+    );
+    let instructorEmail = null;
+    let instructorName  = 'Istruttore';
+    if (examFull && examFull.instructor_user_id) {
+      const [[iRow]] = await db2.query('SELECT email, nome, cognome FROM utenti WHERE id=? LIMIT 1', [examFull.instructor_user_id]);
+      if (iRow && iRow.email) {
+        instructorEmail = iRow.email;
+        instructorName  = ((iRow.nome || '') + ' ' + (iRow.cognome || '')).trim();
+      }
+    }
+
+    const dataOra     = new Date().toLocaleString('it-IT');
+    const punteggioStr = score.toFixed(1) + '%';
+    const esitoLabel  = passed ? '✅ IDONEO' : '❌ NON IDONEO';
+    const esitoColor  = passed ? '#1e7e34' : '#c0392b';
+    const studentLabel = ((student.rank || '') + ' ' + student.surname + ' ' + student.name).trim();
+
+    const htmlEsito =
+      '<div style="font-family:sans-serif;max-width:600px">' +
+        '<div style="background:#0b1727;padding:20px 30px">' +
+          '<h2 style="color:#fff;margin:0">CASEV</h2>' +
+          '<p style="color:#27bcfd;margin:4px 0 0;font-size:12px">Centro Addestramento Equipaggi di Volo</p>' +
+        '</div>' +
+        '<div style="padding:24px;border:1px solid #e5e7eb">' +
+          '<p>Si comunica che il seguente partecipante ha <strong>completato</strong> il test teorico:</p>' +
+          '<table style="width:100%;border-collapse:collapse;margin:16px 0">' +
+            '<tr><td style="padding:8px;background:#f9fafb;border:1px solid #e5e7eb;font-weight:600;width:40%">Partecipante</td>' +
+            '<td style="padding:8px;border:1px solid #e5e7eb">' + studentLabel + '</td></tr>' +
+            '<tr><td style="padding:8px;background:#f9fafb;border:1px solid #e5e7eb;font-weight:600">Email</td>' +
+            '<td style="padding:8px;border:1px solid #e5e7eb">' + (student.email || '-') + '</td></tr>' +
+            '<tr><td style="padding:8px;background:#f9fafb;border:1px solid #e5e7eb;font-weight:600">Tipo esame</td>' +
+            '<td style="padding:8px;border:1px solid #e5e7eb">' + (examFull ? examFull.exam_type : '-') + '</td></tr>' +
+            '<tr><td style="padding:8px;background:#f9fafb;border:1px solid #e5e7eb;font-weight:600">Risposte corrette</td>' +
+            '<td style="padding:8px;border:1px solid #e5e7eb">' + correct + ' / ' + total + '</td></tr>' +
+            '<tr><td style="padding:8px;background:#f9fafb;border:1px solid #e5e7eb;font-weight:600">Punteggio</td>' +
+            '<td style="padding:8px;border:1px solid #e5e7eb;font-size:18px;font-weight:700;color:' + esitoColor + '">' + punteggioStr + '</td></tr>' +
+            '<tr><td style="padding:8px;background:#f9fafb;border:1px solid #e5e7eb;font-weight:600">Esito</td>' +
+            '<td style="padding:8px;border:1px solid #e5e7eb;font-size:16px;font-weight:700;color:' + esitoColor + '">' + esitoLabel + '</td></tr>' +
+            '<tr><td style="padding:8px;background:#f9fafb;border:1px solid #e5e7eb;font-weight:600">Data/Ora</td>' +
+            '<td style="padding:8px;border:1px solid #e5e7eb">' + dataOra + '</td></tr>' +
+            '<tr><td style="padding:8px;background:#f9fafb;border:1px solid #e5e7eb;font-weight:600">Istruttore assegnante</td>' +
+            '<td style="padding:8px;border:1px solid #e5e7eb">' + instructorName + (instructorEmail ? ' &lt;' + instructorEmail + '&gt;' : '') + '</td></tr>' +
+          '</table>' +
+          '<p>Il report completo è disponibile nel pannello istruttore del portale CASEV.</p>' +
+          '<hr style="margin:24px 0;border:none;border-top:1px solid #e5e7eb">' +
+          '<p style="color:#748194;font-size:12px">CASEV - Portale Intranet GC | Notifica automatica</p>' +
+        '</div>' +
+      '</div>';
+
+    const recipients = ['napescara.addestramento@mit.gov.it'];
+    if (instructorEmail) recipients.push(instructorEmail);
+
+    await sendMail({
+      to: recipients.join(','),
+      subject: 'CASEV - Esito Test: ' + studentLabel + ' — ' + esitoLabel + ' (' + punteggioStr + ')',
+      html: htmlEsito
+    });
+  } catch(mailErr) {
+    console.error('[MAIL-ESITO] Errore invio mail esito:', mailErr && mailErr.message ? mailErr.message : mailErr);
+  }
+
   res.redirect('/esami/student/exams/'+examId+'/result');
 }
 

@@ -127,6 +127,25 @@ router.post('/login', async (req, res) => {
       [utente.id, username, ip, ua]
     );
 
+    // Sincronizzazione automatica esami_students al login
+    if (['efv', 'istruttore', 'admin', 'gestore'].includes(utente.ruolo)) {
+      try {
+        const roleEsami = ['istruttore', 'admin', 'gestore'].includes(utente.ruolo) ? 'instructor' : 'efv';
+        await db.query(
+          'INSERT INTO esami_students (user_id, `rank`, name, surname, email, role_at_assignment) VALUES (?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE name=VALUES(name), surname=VALUES(surname), email=VALUES(email), `rank`=VALUES(`rank`), role_at_assignment=VALUES(role_at_assignment)',
+          [
+          utente.id,
+          utente.grado   || '',
+          utente.nome    || '',
+          utente.cognome || '',
+          utente.email   || '',
+          roleEsami
+        ]);
+      } catch (syncErr) {
+        console.warn('[AUTH] Sync esami_students fallita per utente', utente.id, syncErr && syncErr.message);
+      }
+    }
+
     const ROLE_MAP = {
       admin: 'admin', admin_esami: 'admin',
       gestore: 'instructor', istruttore: 'instructor',

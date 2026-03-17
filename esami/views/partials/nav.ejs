@@ -1,48 +1,50 @@
 <!-- NAV-CASEV-v1 -->
 <% const __examMode = (typeof examMode !== 'undefined' && examMode); %>
 
-<% if (__examMode) { %>
-<!-- ══════════════════════════════════════════════════
-     EXAM MODE: topbar compatta con timer
-══════════════════════════════════════════════════ -->
+<!-- NAV SEMPRE VISIBILE -->
 <nav class="navbar naaf-exam-nav">
   <div class="container-fluid px-3">
     <div class="d-flex align-items-center gap-3 w-100">
 
       <!-- Logo testo CASEV -->
       <div style="color:var(--gold);font-weight:800;font-size:1rem;letter-spacing:2px;white-space:nowrap;">CASEV</div>
-      <div style="color:rgba(255,255,255,0.85);font-size:.72rem;letter-spacing:1px;white-space:nowrap;display:none;" class="d-sm-block">ESAME IN CORSO</div>
 
-      <!-- Timer -->
+      <!-- Timer SEMPRE visibile -->
       <div class="ms-2">
         <%
-          // FIX: il server passa remainingSeconds (camelCase), non remaining_seconds
           const __rem0 = (typeof examTimer !== 'undefined' && examTimer && examTimer.remainingSeconds != null)
             ? Math.max(0, Number(examTimer.remainingSeconds) || 0)
             : 0;
           const last5 = __rem0 <= 300;
         %>
+
         <span id="naafTimer" data-remaining="<%= __rem0 %>" data-exam-id="<%= typeof examId !== 'undefined' ? examId : '' %>">
           ⏱ <span id="naafTimerText">--:--</span>
         </span>
+
         <% if (last5 && __rem0 > 0) { %>
           <span class="badge bg-warning text-dark ms-2" style="font-weight:700;">⚠️ Ultimi 5 min</span>
         <% } %>
+
         <script>
           (function () {
             var wrap = document.getElementById('naafTimer');
             var out  = document.getElementById('naafTimerText');
             if (!wrap || !out) return;
+
             var remaining = parseInt(wrap.getAttribute('data-remaining'), 10);
             if (isNaN(remaining) || remaining <= 0) {
               out.textContent = '00:00';
-              return; // non partire se già scaduto o valore non valido
+              return;
             }
+
             var examId = wrap.getAttribute('data-exam-id');
+
             function fmt(s) {
               s = Math.max(0, s|0);
               return String(Math.floor(s/60)).padStart(2,'0') + ':' + String(s%60).padStart(2,'0');
             }
+
             function tick() {
               out.textContent = fmt(remaining);
               if (remaining <= 0) {
@@ -52,6 +54,7 @@
               remaining -= 1;
               setTimeout(tick, 1000);
             }
+
             tick();
           })();
         </script>
@@ -66,8 +69,8 @@
     </div>
   </div>
 
-  <!-- Navigator domande -->
-  <% if (typeof qNav !== 'undefined' && qNav && qNav.length) { %>
+  <!-- Navigator domande SOLO in examMode -->
+  <% if (__examMode && typeof qNav !== 'undefined' && qNav && qNav.length) { %>
     <div class="naaf-exam-index border-top">
       <div class="container-fluid py-2 px-3">
         <div class="naaf-index-scroll d-flex gap-1">
@@ -87,12 +90,8 @@
   <% } %>
 </nav>
 
-<!-- Contenuto esame direttamente nel body -->
 
-<% } else { %>
-<!-- ══════════════════════════════════════════════════
-     NORMAL MODE: sidebar CASEV + layout a due colonne
-══════════════════════════════════════════════════ -->
+<!-- NORMAL MODE LAYOUT (SEMPRE VISIBILE) -->
 <div class="casev-layout">
 
   <!-- Sidebar -->
@@ -101,10 +100,10 @@
     <div class="sidebar-header">
       <div class="sidebar-logo-area">
         <div class="sidebar-logo-icon" style="background:none; padding:0;">
-  <img src="/img/Logo-naaf.png" 
-       alt="CASEV" 
-       style="width:42px; height:42px; object-fit:contain;">
-</div>
+          <img src="/img/Logo-naaf.png" 
+               alt="CASEV" 
+               style="width:42px; height:42px; object-fit:contain;">
+        </div>
         <div>
           <div class="sidebar-logo-title">CASEV</div>
           <div class="sidebar-logo-sub">Centro Addestramento<br>Equipaggi di Volo</div>
@@ -120,13 +119,7 @@
           <a href="/esami/login"><span class="nav-icon">🔑</span> Login</a>
         </div>
       <% } else { %>
-        
-        <% // questo è un commento
-        // <div class="nav-section">
-  //        <div class="nav-section-label">Principale</div>
-    //      <a href="/esami"><span class="nav-icon">🏠</span> Dashboard</a>
-      //  </div>
-%>
+
         <% if (currentUser.role === 'student') { %>
         <div class="nav-section">
           <div class="nav-section-label">Area Allievo</div>
@@ -217,6 +210,3 @@
 
     <!-- Content wrapper aperto — verrà chiuso da foot.ejs -->
     <div class="casev-content">
-
-<% } %>
-
