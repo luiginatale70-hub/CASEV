@@ -1,0 +1,13 @@
+<h1>Manualistica</h1>
+
+<ul style="list-style:none;padding:0;">
+  {{#each items}}
+    <li style="margin-bottom:8px;">
+      {{#if this.isDir}}
+        📁 <a href="{{this.url}}">{{this.name}}</a>
+      {{else}}
+        📄 <a href="{{this.url}}" target="_blank">{{this.name}}</a>
+      {{/if}}
+    </li>
+  {{/each}}
+</ul>

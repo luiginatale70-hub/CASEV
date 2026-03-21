@@ -482,13 +482,9 @@ const QRCode = require('qrcode');
 const ejs = require('ejs');
 
 router.get('/exams/:id/report.pdf', requireLogin, async (req, res) => {
-
 // Disabilita PDF su Linux (PhantomJS non funziona su Ubuntu 24)
-if (process.platform === "linux") {
-    return res.status(501).send("La generazione del PDF non è disponibile su Linux.");
-}
 
-  const id = Number(req.params.id);
+const id = Number(req.params.id);
 
 const exam = await get(`
   SELECT e.*, s.rank,
@@ -503,35 +499,36 @@ const exam = await get(`
   WHERE e.id = ?
 `, [id]);
 
-  if (!exam) {
-    return res.status(404).render('error', { title: 'Errore', message: 'Esame non trovato.' });
-  }
+if (!exam) {
+  return res.status(404).render('error', { title: 'Errore', message: 'Esame non trovato.' });
+}
 
-  const items = await all(`
-    SELECT eq.*, q.question, q.opt_a, q.opt_b, q.opt_c, q.opt_d,
-           q.correct_key, q.topic
-    FROM esami_exam_questions eq
-    JOIN esami_questions q ON q.id = eq.question_id
-    WHERE eq.exam_id = ?
-    ORDER BY eq.id
-  `, [id]);
+const items = await all(`
+  SELECT eq.*, q.question, q.opt_a, q.opt_b, q.opt_c, q.opt_d,
+         q.correct_key, q.topic
+  FROM esami_exam_questions eq
+  JOIN esami_questions q ON q.id = eq.question_id
+  WHERE eq.exam_id = ?
+  ORDER BY eq.id
+`, [id]);
 
-  // Carica logo e convertilo in base64
- const logoPath = path.join(__dirname, '../../public/img/logo_capitanerie.png');
+// Logo
+const logoPath = path.join(process.cwd(), 'public/img/logo_capitanerie.png');
 
-  const logoBase64 = fs.readFileSync(logoPath).toString('base64');
+console.log("LOGO PATH:", logoPath);
+console.log("ESISTE?", fs.existsSync(logoPath));
 
-  // Genera QR code con ID esame
-  const qrBase64 = await QRCode.toDataURL(`https://casev.mit.gov.it/esami/${id}`);
+const logoBase64 = fs.readFileSync(logoPath).toString('base64');
 
-  // Render HTML
-  const html = await ejs.renderFile(
+// QR
+const qrBase64 = await QRCode.toDataURL(`https://casev.mit.gov.it/esami/${id}`);
+
+// HTML
+const html = await ejs.renderFile(
   path.join(__dirname, '../../../views/pdf/exam_report.ejs'),
   { exam, items, logoBase64, qrBase64 }
 );
 
-
-  // Genera PDF con html-pdf
 console.log("HTML LENGTH:", html.length);
 
 const options = {
@@ -546,16 +543,29 @@ const options = {
 
 const forceDownload = req.query.download === '1';
 
-// Genera PDF con html-pdf
+// 🐧 BLOCCO ANTI-CRASH LINUX
+const isLinux = process.platform === "linux";
+
+if (isLinux) {
+  console.log("PDF disabilitato su Linux");
+
+  // salva HTML per debug
+  const debugPath = path.join(process.cwd(), `report_${id}.html`);
+  fs.writeFileSync(debugPath, html);
+
+  return res.send(`PDF non disponibile su Linux. HTML salvato in: ${debugPath}`);
+}
+
+// 🪟 WINDOWS → PDF normale
 pdf.create(html, options).toBuffer((err, buffer) => {
   if (err) {
     console.error("Errore PDF:", err);
     return res.status(500).send("Errore generazione PDF");
   }
 
-  // Salva il PDF su disco per test
   const outputPath = path.join(__dirname, `report_${id}.pdf`);
   fs.writeFileSync(outputPath, buffer);
+
   console.log("PDF salvato in:", outputPath);
 
   res.setHeader('Content-Type', 'application/pdf');
@@ -571,6 +581,6 @@ pdf.create(html, options).toBuffer((err, buffer) => {
   return res.send(buffer);
 });   // chiude pdf.create
 
-});   // chiude la route (IMPORTANTISSIMO)
+});   // chiude la route
 
 module.exports = router;

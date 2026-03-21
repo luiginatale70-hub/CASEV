@@ -1,5 +1,21 @@
 // routes/admin.js
 const express = require('express');
+const multer = require('multer');
+const configManuali = require('../config/manuali');
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, configManuali.basePath);
+  },
+  filename: (req, file, cb) => {
+    cb(null, file.originalname);
+  }
+});
+
+const upload = multer({ storage });
+
+
+
 const router  = express.Router();
 const bcrypt  = require('bcryptjs');
 const db      = require('../config/db');
@@ -366,7 +382,32 @@ router.post('/pubblicazioni-path', async (req, res, next) => {
     res.redirect('/admin/pubblicazioni-path');
   } catch (e) { next(e); }
 });
+router.get('/manuali-path', async (req, res, next) => {
+  try {
+    const [[row]] = await db.query(
+      "SELECT valore FROM config WHERE chiave='manuali_path'"
+    );
+    res.render('admin/manuali-path', {
+      title: 'Percorso Manuali',
+      path: row ? row.valore : ''
+    });
+  } catch (e) { next(e); }
+});
 
+router.post('/manuali-path', async (req, res, next) => {
+  try {
+    const nuovoPercorso = req.body.path.trim();
+
+    await db.query(`
+      INSERT INTO config (chiave, valore)
+      VALUES ('manuali_path', ?)
+      ON DUPLICATE KEY UPDATE valore=VALUES(valore)
+    `, [nuovoPercorso]);
+
+    req.flash('success', 'Percorso Manuali aggiornato.');
+    res.redirect('/admin/manuali-path');
+  } catch (e) { next(e); }
+});
 module.exports = router;
 
 
