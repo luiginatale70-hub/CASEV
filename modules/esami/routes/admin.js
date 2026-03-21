@@ -126,34 +126,70 @@ router.post('/instructors/new',
     res.redirect('/esami/admin');
   }
 );
-
-// ── Allievi ───────────────────────────────────────────────────
+//allievi
 router.get('/students',async(req,res)=>{
   const page=Math.max(1,parseInt(req.query.page||'1',10)),perPage=20;
   const command=(req.query.command||'').trim(),category=(req.query.category||'').trim(),q=(req.query.q||'').trim();
-  let where='1=1'; const params=[];
-  if(command){where+=' AND c.command=?';params.push(command);}
-  if(category){where+=' AND c.category=?';params.push(category);}
-  if(q){
-    where+=` AND (s.${BT}rank${BT} LIKE ? OR s.name LIKE ? OR s.surname LIKE ? OR s.email LIKE ? OR c.name LIKE ?)`;
-    const l='%'+q+'%';params.push(l,l,l,l,l);
+
+  let where='1=1'; 
+  const params=[];
+
+  if(command){
+    where+=' AND c.command=?';
+    params.push(command);
   }
-  const tr=await get('SELECT COUNT(*) as cnt FROM esami_students s LEFT JOIN esami_classes c ON c.id=s.class_id WHERE '+where,params);
-  const total=tr?tr.cnt:0,pages=Math.max(1,Math.ceil(total/perPage)),sp=Math.min(page,pages);
+
+  if(category){
+    where+=' AND c.category=?';
+    params.push(category);
+  }
+
+  if(q){
+    where+=` AND (s.${BT}rank${BT} LIKE ? OR u2.name LIKE ? OR u2.surname LIKE ? OR u2.email LIKE ? OR c.name LIKE ?)`;
+    const l='%'+q+'%';
+    params.push(l,l,l,l,l);
+  }
+
+  const tr=await get(
+    'SELECT COUNT(*) as cnt FROM esami_students s ' +
+    'LEFT JOIN esami_classes c ON c.id=s.class_id ' +
+    'LEFT JOIN utenti u2 ON u2.id = s.user_id ' +
+    'WHERE '+where,
+    params
+  );
+
+  const total=tr?tr.cnt:0,
+        pages=Math.max(1,Math.ceil(total/perPage)),
+        sp=Math.min(page,pages);
+
   const rows=await all(
-    `SELECT s.*,c.name as class_name,c.command,c.category,
+    `SELECT s.*, 
+            u2.name as name,
+            u2.surname as surname,
+            u2.email as email,
+            c.name as class_name,c.command,c.category,
             COALESCE(s.role_at_assignment,'allievo') as role_label
      FROM esami_students s
      LEFT JOIN esami_classes c ON c.id=s.class_id
+     LEFT JOIN utenti u2 ON u2.id = s.user_id
      WHERE ${where}
-     ORDER BY s.role_at_assignment, s.surname, s.name
+     ORDER BY s.role_at_assignment, u2.surname, u2.name
      LIMIT ? OFFSET ?`,
     [...params,perPage,(sp-1)*perPage]
   );
-  const cr=await all('SELECT DISTINCT command FROM esami_classes ORDER BY command');
-  res.render('admin/students',{title:'Gestione partecipanti',rows,page:sp,pages,total,filters:{command,category,q},commands:cr.map(r=>r.command)});
-});
 
+  const cr=await all('SELECT DISTINCT command FROM esami_classes ORDER BY command');
+
+  res.render('admin/students',{
+    title:'Gestione partecipanti',
+    rows,
+    page:sp,
+    pages,
+    total,
+    filters:{command,category,q},
+    commands:cr.map(r=>r.command)
+  });
+});
 router.get('/students/new',async(req,res)=>{
   const classes=await all('SELECT * FROM esami_classes ORDER BY command,category,name');
   res.render('admin/student_new',{title:'Nuovo partecipante',classes});

@@ -1,0 +1,94 @@
+<%- include('../partials/head') %>
+<%- include('../partials/nav') %>
+
+  <div class="bg-white border rounded-3 shadow-sm p-4 mb-3">
+    <div class="d-flex justify-content-between align-items-center">
+      <div>
+        <h1 class="h5 mb-0"><%= mode === 'edit' ? 'Modifica domanda' : 'Nuova domanda' %></h1>
+        <div class="text-muted small">Questionario: <strong><%= bank.exam_type %></strong> (ID <%= bank.id %>)</div>
+      </div>
+      <a class="btn btn-outline-secondary" href="/esami/instructor/questions/<%= bank.id %>">← Torna al questionario</a>
+    </div>
+  </div>
+
+  <div class="bg-white border rounded-3 shadow-sm p-4">
+    <form method="post"
+          action="<%= mode === 'edit'
+            ? '/esami/instructor/questions/' + bank.id + '/q/' + q.id + '/edit'
+            : '/esami/instructor/questions/' + bank.id + '/add' %>">
+
+      <!-- Argomento -->
+      <div class="mb-3">
+        <label class="form-label fw-600">Argomento <span class="text-muted small">(opzionale)</span></label>
+        <input type="text" name="topic" class="form-control"
+               value="<%= q.topic || '' %>"
+               placeholder="Es. PRESSURIZATION, HYDRAULIC, CONTROLS…"
+               list="topics-list">
+        <datalist id="topics-list">
+          <% topics.forEach(t => { %>
+            <option value="<%= t %>">
+          <% }) %>
+        </datalist>
+      </div>
+
+      <!-- Domanda -->
+      <div class="mb-3">
+        <label class="form-label fw-600">Testo della domanda <span class="text-danger">*</span></label>
+        <textarea name="question" class="form-control" rows="3" required
+                  placeholder="Scrivi il testo della domanda…"><%= q.question || '' %></textarea>
+      </div>
+
+      <!-- Opzioni -->
+      <div class="row g-3 mb-3">
+        <div class="col-md-6">
+          <label class="form-label fw-600">Opzione A <span class="text-danger">*</span></label>
+          <input type="text" name="opt_a" class="form-control" required
+                 value="<%= q.opt_a || '' %>" placeholder="Testo opzione A">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label fw-600">Opzione B <span class="text-danger">*</span></label>
+          <input type="text" name="opt_b" class="form-control" required
+                 value="<%= q.opt_b || '' %>" placeholder="Testo opzione B">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label fw-600">Opzione C <span class="text-danger">*</span></label>
+          <input type="text" name="opt_c" class="form-control" required
+                 value="<%= q.opt_c || '' %>" placeholder="Testo opzione C">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label fw-600">Opzione D <span class="text-muted small">(opzionale)</span></label>
+          <input type="text" name="opt_d" class="form-control"
+                 value="<%= q.opt_d || '' %>" placeholder="Testo opzione D (lascia vuoto per domanda a 3 opzioni)">
+        </div>
+      </div>
+
+      <!-- Risposta corretta -->
+      <div class="mb-4">
+        <label class="form-label fw-600">Risposta corretta <span class="text-danger">*</span></label>
+        <div class="d-flex gap-3 flex-wrap">
+          <% ['A','B','C','D'].forEach(k => { %>
+            <div class="form-check">
+              <input class="form-check-input" type="radio" name="correct_key"
+                     id="key_<%= k %>" value="<%= k %>"
+                     <%= (q.correct_key === k) ? 'checked' : '' %>
+                     <%= (k === 'D') ? 'id="radio_d"' : '' %>>
+              <label class="form-check-label fw-600" for="key_<%= k %>">
+                <%= k %>
+              </label>
+            </div>
+          <% }) %>
+        </div>
+        <div class="text-muted small mt-1">Se la risposta corretta è D, assicurati di aver compilato l'Opzione D.</div>
+      </div>
+
+      <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-primary btn-lg">
+          <%= mode === 'edit' ? '💾 Salva modifiche' : '➕ Aggiungi domanda' %>
+        </button>
+        <a href="/esami/instructor/questions/<%= bank.id %>" class="btn btn-outline-secondary btn-lg">Annulla</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<%- include('../partials/foot') %>

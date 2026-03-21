@@ -26,7 +26,9 @@ async function main() {
     require('dotenv').config(); // ricarica
   }
 
-  const db = await mysql.createConnection({
+  let db;
+try {
+  db = await mysql.createConnection({
     host: process.env.DB_HOST || 'localhost',
     port: process.env.DB_PORT || 3306,
     database: process.env.DB_NAME || 'casev_db',
@@ -35,6 +37,14 @@ async function main() {
   });
 
   console.log('✅ Connesso al database MySQL\n');
+} catch (err) {
+  console.error('\n❌ ERRORE: impossibile connettersi al database MySQL.');
+  console.error('   Messaggio:', err.message);
+  console.error('   Controlla i parametri nel file .env (DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD).');
+  rl.close();
+  process.exit(1);
+}
+
 
   // Crea utente admin
   const adminUser = await ask('Username admin [admin]: ') || 'admin';
@@ -57,12 +67,31 @@ async function main() {
   await db.end();
   rl.close();
 
-  console.log('\n══════════════════════════════════════');
-  console.log('🚀 Setup completato! Ora esegui:');
-  console.log('   npm install');
-  console.log('   npm run dev');
-  console.log(`\n   Portale: http://10.142.3.123:${process.env.PORT || 3000}`);
-  console.log('══════════════════════════════════════\n');
+ const os = require('os');
+
+// Trova il primo IP IPv4 non interno
+function getLocalIP() {
+  const nets = os.networkInterfaces();
+  for (const name of Object.keys(nets)) {
+    for (const net of nets[name]) {
+      if (net.family === 'IPv4' && !net.internal) {
+        return net.address;
+      }
+    }
+  }
+  return 'localhost';
+}
+
+const ip = getLocalIP();
+const port = process.env.PORT || 3000;
+
+console.log('\n══════════════════════════════════════');
+console.log('🚀 Setup completato! Ora esegui:');
+console.log('   npm install');
+console.log('   npm run dev');
+console.log(`\n   Portale: http://${ip}:${port}`);
+console.log('══════════════════════════════════════\n');
+
 }
 
 main().catch(console.error);

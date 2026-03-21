@@ -1,0 +1,12 @@
+ <%- include('../partials/header') %>
+
+<h1><%= title %></h1>
+
+<form method="POST" action="/admin/pubblicazioni-path" style="max-width:600px;">
+    <label>Percorso assoluto cartella Pubblicazioni:</label>
+    <input type="text" name="path" value="<%= path %>" class="form-control" required>
+
+    <button type="submit" class="btn btn-primary mt-3">Salva</button>
+</form>
+
+<%- include('../partials/footer') %>

@@ -1,0 +1,93 @@
+<%- include('../partials/head') %>
+<%- include('../partials/nav') %>
+
+  <div class="bg-white border rounded-3 shadow-sm p-4 mb-3">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+      <div>
+        <h1 class="h5 mb-0"><%= bank.exam_type %></h1>
+        <div class="text-muted small">Questionario ID <%= bank.id %> — <%= questions.length %> domande</div>
+      </div>
+      <div class="d-flex gap-2 flex-wrap">
+        <a class="btn btn-outline-secondary" href="/esami/instructor/questions">← Elenco</a>
+        <% if (user && user.role === 'admin') { %>
+          <a class="btn btn-success" href="/esami/instructor/questions/<%= bank.id %>/add">+ Aggiungi domanda</a>
+        <% } %>
+        <a class="btn btn-primary" href="/esami/instructor/exams/assign">Assegna esame</a>
+      </div>
+    </div>
+
+    <!-- Filtro argomento -->
+    <form method="get" class="d-flex gap-2 mt-3">
+      <input type="text" name="topic" class="form-control form-control-sm" style="max-width:240px;"
+             placeholder="Filtra per argomento…" value="<%= typeof topicFilter !== 'undefined' ? topicFilter : '' %>">
+      <button type="submit" class="btn btn-sm btn-outline-primary">Filtra</button>
+      <a href="/esami/instructor/questions/<%= bank.id %>" class="btn btn-sm btn-outline-secondary">Reset</a>
+    </form>
+  </div>
+
+  <div class="bg-white border rounded-3 shadow-sm p-4">
+    <div class="table-responsive">
+      <table class="table table-sm align-middle mb-0">
+        <thead class="table-light">
+          <tr>
+            <th style="width:60px">ID</th>
+            <th style="width:130px">Argomento</th>
+            <th>Domanda</th>
+            <th style="width:70px">Corretta</th>
+            <% if (user && user.role === 'admin') { %>
+            <th style="width:120px" class="text-end">Azioni</th>
+            <% } %>
+          </tr>
+        </thead>
+        <tbody>
+          <% if (!questions.length) { %>
+            <tr><td colspan="5" class="text-muted py-3 text-center">Nessuna domanda trovata.</td></tr>
+          <% } %>
+          <% questions.forEach(q => { %>
+            <tr>
+              <td class="text-muted small"><%= q.id %></td>
+              <td>
+                <% if (q.topic) { %>
+                  <span class="badge bg-secondary" style="font-weight:500;font-size:11px;"><%= q.topic %></span>
+                <% } else { %>
+                  <span class="text-muted">-</span>
+                <% } %>
+              </td>
+              <td style="min-width:380px;">
+                <div class="fw-500 mb-1"><%= q.question %></div>
+                <div class="text-muted small">
+                  <span class="me-2">A) <%= q.opt_a %></span>
+                  <span class="me-2">B) <%= q.opt_b %></span>
+                  <span class="me-2">C) <%= q.opt_c %></span>
+                  <% if (q.opt_d) { %><span>D) <%= q.opt_d %></span><% } %>
+                </div>
+              </td>
+              <td><span class="badge bg-success fs-6"><%= q.correct_key %></span></td>
+              <% if (user && user.role === 'admin') { %>
+              <td class="text-end">
+                <div class="d-flex gap-1 justify-content-end">
+                  <a class="btn btn-sm btn-outline-primary"
+                     href="/esami/instructor/questions/<%= bank.id %>/q/<%= q.id %>/edit"
+                     title="Modifica">✏️</a>
+                  <form method="post"
+                        action="/esami/instructor/questions/<%= bank.id %>/q/<%= q.id %>/delete"
+                        onsubmit="return confirm('Eliminare questa domanda?')"
+                        class="d-inline">
+                    <button class="btn btn-sm btn-outline-danger" title="Elimina">🗑️</button>
+                  </form>
+                </div>
+              </td>
+              <% } %>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+
+    <% if (questions.length >= 500) { %>
+      <div class="text-muted small mt-3">⚠️ Visualizzate le prime 500 domande. Usa il filtro argomento per cercare.</div>
+    <% } %>
+  </div>
+</div>
+
+<%- include('../partials/foot') %>

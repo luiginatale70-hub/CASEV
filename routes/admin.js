@@ -339,6 +339,34 @@ router.get('/log/csv', async (req, res, next) => {
     res.send(csv);
   } catch(e) { next(e); }
 });
+
+// ── PUBBLICAZIONI — percorso configurabile ─────────────────────────────
+router.get('/pubblicazioni-path', async (req, res, next) => {
+  try {
+    const [[row]] = await db.query(
+      "SELECT valore FROM config WHERE chiave='pubblicazioni_path'"
+    );
+    res.render('admin/pubblicazioni_path', {
+      title: 'Percorso Pubblicazioni',
+      path: row ? row.valore : ''
+    });
+  } catch (e) { next(e); }
+});
+
+router.post('/pubblicazioni-path', async (req, res, next) => {
+  try {
+    const nuovoPercorso = req.body.path.trim();
+    await db.query(`
+      INSERT INTO config (chiave, valore)
+      VALUES ('pubblicazioni_path', ?)
+      ON DUPLICATE KEY UPDATE valore=VALUES(valore)
+    `, [nuovoPercorso]);
+
+    req.flash('success', 'Percorso Pubblicazioni aggiornato.');
+    res.redirect('/admin/pubblicazioni-path');
+  } catch (e) { next(e); }
+});
+
 module.exports = router;
 
 

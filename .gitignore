@@ -1,1 +1,35 @@
+
 node_modules/
+.env
+.DS_Store
+backup/
+uploads/
+*.sql
+files/*.pdf
+files/*.xlsx
+*copy.js
+* copy.js
+views/pdf/
+views/admin/pubblicazioni_path
+Salva: Ctrl+O → Invio → Ctrl+X
+
+Passo 2 — Rimuovi dal tracking i file che non devono stare nel repo
+bashgit rm --cached .env 2>/dev/null
+git rm --cached -r backup/ 2>/dev/null
+git rm --cached -r uploads/ 2>/dev/null
+git rm --cached -r files/ 2>/dev/null
+git rm --cached -r esami/ 2>/dev/null
+Questo dice a git "smetti di seguire questi file" — non li cancella dal disco.
+
+Passo 3 — Aggiungi tutto ciò che è nuovo
+bashgit add .gitignore
+git add middleware/
+git add modules/
+git add services/
+git add routes/
+git add views/
+git add public/
+git add server.js package.json package-lock.json setup.js
+Poi controlla che sia tutto ok prima di committare:
+bashgit status
+Dimmi cosa vedi — in particolare voglio assicurarmi che .env non compaia tra i file da committare.
