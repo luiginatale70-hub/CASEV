@@ -1,55 +1,97 @@
 {{! views/home.hbs }}
+
 <div class="hero-banner">
   <div class="hero-tag">✈ Sistema Attivo</div>
-  <div class="hero-title">Portale CASEV<br>Guardia Costiera Italiana</div>
-  <div class="hero-sub">Centro Addestramento per Equipaggi di Volo — Gestione integrata di documenti, personale e procedure operative.</div>
+  <div class="hero-title">
+    Portale CASEV<br>Guardia Costiera Italiana
+  </div>
+  <div class="hero-sub">
+    Centro Addestramento per Equipaggi di Volo — Gestione integrata di documenti, personale e procedure operative.
+  </div>
+</div>
 
 <!-- APP CARDS -->
-<div class="section-head"><div class="section-title">Accesso Rapido</div></div>
-<div class="grid-3" style="margin-bottom:28px;">
-  <div class="app-card" onclick="location.href='/esami'">
+<div class="section-head">
+  <div class="section-title">Accesso Rapido</div>
+</div>
+
+<div class="grid-3">
+
+  <a href="/esami" class="app-card">
     <div class="app-icon" style="background:rgba(26,58,92,0.08);">📝</div>
     <div class="app-name">Esami On-Line</div>
     <div class="app-desc">Piattaforma esami per allievi e istruttori</div>
     <div class="app-status">Operativo</div>
-  </div>
+  </a>
 
   {{#if isGestore}}
-  <div class="app-card" onclick="location.href='/archivio'">
+  <a href="/archivio" class="app-card">
     <div class="app-icon" style="background:rgba(200,168,75,0.12);">🗄️</div>
     <div class="app-name">Archivio Documenti</div>
     <div class="app-desc">Accesso cartelle condivise e pratiche</div>
     <div class="app-status">Operativo</div>
-  </div>
+  </a>
 
-  <div class="app-card" onclick="location.href='/personale'">
+  <a href="/personale" class="app-card">
     <div class="app-icon" style="background:rgba(74,222,128,0.1);">👥</div>
     <div class="app-name">Personale Equipaggi</div>
     <div class="app-desc">Schede personali e pratiche collegate</div>
     <div class="app-status">Operativo</div>
-  </div>
-
+  </a>
   {{else}}
-  <div class="app-card" onclick="location.href='/pubblicazioni'">
+
+  <a href="/pubblicazioni" class="app-card">
     <div class="app-icon" style="background:rgba(74,222,128,0.1);">📚</div>
     <div class="app-name">Pubblicazioni</div>
     <div class="app-desc">Manualistica e normativa in vigore</div>
     <div class="app-status">Pubblico</div>
-  </div>
+  </a>
 
-  <div class="app-card" onclick="location.href='/news'">
+  <a href="/news" class="app-card">
     <div class="app-icon" style="background:rgba(239,68,68,0.1);">📰</div>
     <div class="app-name">News & Comunicati</div>
     <div class="app-desc">Aggiornamenti e comunicati ufficiali</div>
     <div class="app-status">Pubblico</div>
-  </div>
+  </a>
+
   {{/if}}
 </div>
 
-<!-- SOLO MANUALISTICA -->
-<div class="app-card" onclick="location.href='/manuali'">
-  <div class="app-icon" style="background:rgba(200,168,75,0.12);">📚</div>
-  <div class="app-name">Manualistica</div>
-  <div class="app-desc">Accesso manuali operativi</div>
-  <div class="app-status">Operativo</div>
+<!-- SEZIONE MANUALI -->
+<div class="section-head" style="margin-top:25px;">
+  <div class="section-title">Manualistica</div>
 </div>
+
+<div class="grid-3">
+  <a href="/manuali" class="app-card">
+    <div class="app-icon" style="background:rgba(200,168,75,0.12);">📚</div>
+    <div class="app-name">Manualistica</div>
+    <div class="app-desc">Accesso manuali operativi</div>
+    <div class="app-status">Operativo</div>
+  </a>
+</div>
+
+<style>
+.app-card{
+  display:block;
+  padding:18px;
+  border-radius:12px;
+  border:1px solid #e5e7eb;
+  text-decoration:none;
+  color:inherit;
+  transition:all 0.2s ease;
+  cursor:pointer;
+  height:100%;
+}
+
+.app-card:hover{
+  transform:translateY(-3px);
+  box-shadow:0 8px 20px rgba(0,0,0,0.08);
+}
+
+.grid-3{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:15px;
+}
+</style>

@@ -1,27 +1,77 @@
-<div class="card">
-  <div class="card-header">
-    <div class="card-title">📚 Percorso Manuali</div>
-  </div>
-
-  <div class="card-body">
-    <form method="POST">
-      <div style="margin-bottom:15px;">
-        <label>Percorso cartella manuali</label>
-        <input 
-          type="text" 
-          name="path" 
-          value="{{path}}" 
-          style="width:100%;padding:10px;border:1px solid #ccc;border-radius:6px;"
-        >
-      </div>
-
-      <button class="btn btn-primary">💾 Salva</button>
-    </form>
-
-    <div style="margin-top:20px;color:#666;font-size:13px;">
-      Esempi:<br>
-      /mnt/manuali<br>
-      \\server\manuali
+<div class="card" style="max-width:600px;margin:auto;border:1px solid #e5e7eb;border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,0.05);">
+  
+  <div class="card-header" style="padding:20px;border-bottom:1px solid #eee;">
+    <div class="card-title" style="font-size:18px;font-weight:600;">
+      📚 Percorso Manuali
     </div>
   </div>
+
+  <div class="card-body" style="padding:20px;">
+    <form method="POST">
+      
+      <div style="margin-bottom:20px;">
+        <label style="display:block;margin-bottom:8px;font-weight:500;">
+          Cartella manuali
+        </label>
+
+        <div style="display:flex;border:1px solid #ccc;border-radius:8px;overflow:hidden;">
+          <input 
+            list="paths"
+            type="text" 
+            name="path" 
+            value="{{path}}" 
+            placeholder="/mnt/manuali oppure \\server\manuali"
+            style="flex:1;padding:12px;border:none;outline:none;"
+          >
+
+          <button 
+            type="button"
+            style="padding:0 15px;background:#f3f4f6;border:none;cursor:pointer;"
+          >
+            📁
+          </button>
+        </div>
+
+        <datalist id="paths">
+          <option value="/mnt/manuali">
+          <option value="/home/utente/manuali">
+          <option value="\\server\manuali">
+        </datalist>
+      </div>
+
+      <div style="margin-bottom:20px;">
+        <div style="font-size:13px;color:#666;margin-bottom:8px;">Percorsi rapidi</div>
+
+        <div style="display:flex;flex-wrap:wrap;gap:8px;">
+          <button type="button" onclick="setPath('/mnt/manuali')" class="chip">/mnt/manuali</button>
+          <button type="button" onclick="setPath('/home')" class="chip">/home</button>
+          <button type="button" onclick="setPath('\\\\server\\manuali')" class="chip">server</button>
+        </div>
+      </div>
+
+      <button class="btn btn-primary" style="width:100%;padding:12px;border-radius:8px;">
+        💾 Salva
+      </button>
+    </form>
+  </div>
 </div>
+
+<style>
+.chip{
+  padding:6px 10px;
+  border-radius:20px;
+  border:1px solid #ddd;
+  background:#f9fafb;
+  cursor:pointer;
+  font-size:13px;
+}
+.chip:hover{
+  background:#e5e7eb;
+}
+</style>
+
+<script>
+function setPath(p){
+  document.querySelector('input[name="path"]').value = p;
+}
+</script>
