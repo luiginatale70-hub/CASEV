@@ -18,7 +18,8 @@ const { engine }     = require('express-handlebars');
 const { injectUser } = require('./middleware/auth');
 const MySQLStore     = require('express-mysql-session')(session);
 const mysql          = require('mysql2/promise');
-
+const testDB = require('./config/dbTest');
+testDB();
 const app  = express();
 const globalMiddleware = require('./middleware/global');
 const PORT = process.env.PORT || 3000;
