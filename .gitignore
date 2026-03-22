@@ -2,7 +2,6 @@
 node_modules/
 .env
 .DS_Store
-backup/
 uploads/
 *.sql
 files/*.pdf
@@ -15,7 +14,6 @@ Salva: Ctrl+O → Invio → Ctrl+X
 
 Passo 2 — Rimuovi dal tracking i file che non devono stare nel repo
 bashgit rm --cached .env 2>/dev/null
-git rm --cached -r backup/ 2>/dev/null
 git rm --cached -r uploads/ 2>/dev/null
 git rm --cached -r files/ 2>/dev/null
 git rm --cached -r esami/ 2>/dev/null
