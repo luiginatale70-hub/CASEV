@@ -1,12 +1,62 @@
- <%- include('../partials/header') %>
+<div class="card" style="max-width:600px;margin:auto;">
+  <div class="card-header" style="padding:20px;border-bottom:1px solid #eee;">
+    <div class="card-title" style="font-size:18px;font-weight:600;">
+      📚 Percorso Manuali
+    </div>
+  </div>
 
-<h1><%= title %></h1>
+  <div class="card-body" style="padding:20px;">
+    <form method="POST">
 
-<form method="POST" action="/admin/pubblicazioni-path" style="max-width:600px;">
-    <label>Percorso assoluto cartella Pubblicazioni:</label>
-    <input type="text" name="path" value="<%= path %>" class="form-control" required>
+      <div style="margin-bottom:20px;">
+        <label style="display:block;margin-bottom:6px;font-weight:500;">
+          Seleziona cartella manuali
+        </label>
 
-    <button type="submit" class="btn btn-primary mt-3">Salva</button>
-</form>
+        <input 
+          type="file" 
+          id="folderPicker"
+          webkitdirectory 
+          directory
+          style="display:none;"
+        >
 
-<%- include('../partials/footer') %>
+        <div style="display:flex;gap:10px;">
+          <input 
+            type="text" 
+            name="path" 
+            id="pathInput"
+            value="{{path}}" 
+            readonly
+            style="flex:1;padding:12px;border:1px solid #ccc;border-radius:8px;font-size:14px;background:#f5f5f5;"
+          >
+
+          <button 
+            type="button"
+            onclick="document.getElementById('folderPicker').click()"
+            style="padding:12px 16px;border:none;border-radius:8px;background:#007bff;color:white;font-weight:600;cursor:pointer;"
+          >
+            Sfoglia
+          </button>
+        </div>
+      </div>
+
+      <button 
+        class="btn btn-primary" 
+        style="width:100%;padding:12px;border-radius:8px;font-weight:600;"
+      >
+        💾 Salva percorso
+      </button>
+
+    </form>
+  </div>
+</div>
+
+<script>
+document.getElementById('folderPicker').addEventListener('change', function(e) {
+  if (e.target.files.length > 0) {
+    const path = e.target.files[0].webkitRelativePath.split('/')[0];
+    document.getElementById('pathInput').value = path;
+  }
+});
+</script>
