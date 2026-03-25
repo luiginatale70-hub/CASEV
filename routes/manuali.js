@@ -5,7 +5,7 @@ const { isLoggedIn } = require('../middleware/auth');
 const config = require('../config/manuali');
 
 function getDirContent(basePath, relative = '') {
-  const dir = path.join(basePath, relative);
+  const dir = path.resolve(basePath, relative);
   const items = fs.readdirSync(dir, { withFileTypes: true });
 
   return items.map(item => {
@@ -22,33 +22,49 @@ function getDirContent(basePath, relative = '') {
 }
 
 router.get('/', isLoggedIn, async (req, res) => {
-  const basePath = await config.getPath();
+  const basePath = path.resolve(await config.getPath());
   const subDir = req.query.dir ? decodeURIComponent(req.query.dir) : '';
 
-  const currentPath = path.join(basePath, subDir);
+  const currentPath = path.resolve(basePath, subDir);
 
   let items = [];
+  let safeDir = subDir;
+
   try {
+    if (!currentPath.startsWith(basePath)) throw new Error('Invalid path');
     if (!fs.existsSync(currentPath)) throw new Error('Path non esiste');
+
     items = getDirContent(basePath, subDir);
   } catch (e) {
-    console.log('ERRORE:', e.message);c
+    console.log('ERRORE:', e.message);
+
+    // fallback root
+    safeDir = '';
+    try {
+      items = getDirContent(basePath, '');
+    } catch (e2) {
+      items = [];
+    }
   }
 
   res.render('manuali/index', {
     items,
-    currentDir: subDir
+    currentDir: safeDir
   });
 });
 
 router.get('/file', isLoggedIn, async (req, res) => {
-  const basePath = await config.getPath();
+  const basePath = path.resolve(await config.getPath());
   const relFile = decodeURIComponent(req.query.file);
 
-  const filePath = path.join(basePath, relFile);
+  const filePath = path.resolve(basePath, relFile);
 
   if (!filePath.startsWith(basePath)) {
     return res.status(400).send('Invalid path');
+  }
+
+  if (!fs.existsSync(filePath)) {
+    return res.status(404).send('File non trovato');
   }
 
   res.setHeader('Content-Type', 'application/pdf');

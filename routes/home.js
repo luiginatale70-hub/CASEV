@@ -12,7 +12,7 @@ router.get('/', async (req, res, next) => {
       'SELECT * FROM pubblicazioni WHERE pubblica=1 ORDER BY data_vigenza DESC LIMIT 6'
     );
     const [[{ totPersonale }]] = await db.query(
-      'SELECT COUNT(*) as totPersonale FROM personale WHERE stato="attivo"'
+    'SELECT COUNT(*) as totPersonale FROM personale WHERE stato="attivo"'
     );
     const [[{ totPratiche }]] = await db.query(
       'SELECT COUNT(*) as totPratiche FROM pratiche WHERE stato="valida"'
