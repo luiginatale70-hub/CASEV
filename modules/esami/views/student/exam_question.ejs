@@ -142,6 +142,33 @@
       Nota: l'esame non può essere chiuso se mancano risposte.
     </div>
   </div>
+<script>
+// blocca tasto destro
+document.addEventListener('contextmenu', e => e.preventDefault());
 
+// blocca selezione testo
+document.addEventListener('selectstart', e => e.preventDefault());
+
+// blocca copia/incolla/taglia
+document.addEventListener('copy', e => e.preventDefault());
+document.addEventListener('paste', e => e.preventDefault());
+document.addEventListener('cut', e => e.preventDefault());
+
+// blocca scorciatoie tastiera
+document.addEventListener('keydown', function(e) {
+  if (e.ctrlKey || e.metaKey) {
+    const key = e.key.toLowerCase();
+
+    if (['c', 'v', 'x', 'a', 'u', 's'].includes(key)) {
+      e.preventDefault();
+    }
+  }
+
+  // blocca F12 (dev tools)
+  if (e.key === 'F12') {
+    e.preventDefault();
+  }
+});
+</script>
 
 <%- include('../partials/foot') %>

@@ -350,11 +350,15 @@ body {
 /* ── EXAM NAV BAR MINIMALISTA ─────────────────────────────── */
 /* In modalità esame usa topbar semplificata (no sidebar) */
 .naaf-exam-nav.navbar {
-  background: var(--navy-dark) !important;
-  border-bottom: 2px solid var(--gold) !important;
-  padding: .5rem 1rem !important;
-  box-shadow: 0 2px 12px rgba(0,0,0,.3) !important;
+  background: #ffffff !important;
+  border-bottom: 1px solid #e5e7eb !important;
+  color: #1e293b !important;
 }
+
+.naaf-exam-nav.navbar * {
+  color: #1e293b !important;
+}
+
 .naaf-exam-nav .navbar-brand { padding: 0 !important; }
 .naaf-exam-index { background: var(--white); border-bottom: 1px solid var(--border); }
 .naaf-index-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: .25rem; }
@@ -461,4 +465,89 @@ code { background: var(--bg); color: var(--navy); padding: 1px 5px; border-radiu
   .table thead th { font-size: .7rem; padding: .5rem .6rem; }
   .table tbody td { font-size: .83rem; padding: .5rem .6rem; }
   .btn { font-size: .83rem; }
+}
+/* NASCONDI NAVBAR ESAME (NON SERVE) */
+
+.naaf-exam-nav {
+  display: none !important;
+}
+/* NAVIGATOR MIGLIORATO */
+
+.naaf-index-scroll .btn {
+  border-radius: 8px;
+  min-width: 36px;
+  font-weight: 600;
+}
+
+/* domanda corrente */
+.btn-primary {
+  transform: scale(1.15);
+  box-shadow: 0 0 0 3px rgba(13,110,253,0.25);
+}
+
+/* risposta data */
+.btn-success {
+  background: #16a34a !important;
+  border-color: #16a34a !important;
+}
+
+/* non risposta */
+.btn-outline-secondary {
+  background: #f1f5f9;
+}
+/* RISPOSTE PIÙ INTERATTIVE */
+
+.list-group-item {
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.list-group-item:hover {
+  background: #f8fafc;
+  border-color: #cbd5f5;
+}
+
+/* selezionata */
+.list-group-item input:checked + * {
+  font-weight: 600;
+  color: #0d6efd;
+}
+/* NAVIGATOR PRO */
+
+.naaf-index-scroll .btn {
+  transition: all 0.2s ease;
+}
+
+/* corrente */
+.btn-primary {
+  transform: scale(1.2);
+  box-shadow: 0 0 0 3px rgba(13,110,253,0.3);
+}
+
+/* risposta data */
+.btn-success {
+  background: #16a34a !important;
+}
+
+/* hover */
+.naaf-index-scroll .btn:hover {
+  transform: translateY(-2px);
+}
+/* domanda più leggibile */
+
+h4, .question-title {
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+/* risposte */
+.list-group-item {
+  padding: 14px;
+  border-radius: 10px;
+}
+/* BLOCCO SELEZIONE TESTO */
+
+body {
+  user-select: none;
+  -webkit-user-select: none;
 }

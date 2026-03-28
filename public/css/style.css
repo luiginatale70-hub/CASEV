@@ -468,3 +468,165 @@ body {
   border-color: rgba(239,68,68,.25);
   color: #dc2626;
 }
+
+/* ===== NAVIGATOR ESAME PRO ===== */
+
+.exam-nav-wrapper {
+  border-bottom: 1px solid #e5e7eb;
+  padding-bottom: 10px;
+}
+
+.exam-nav-scroll {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.exam-nav-btn {
+  min-width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 14px;
+  text-align: center;
+  line-height: 38px;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+/* STATI */
+
+.exam-nav-btn.current {
+  background: var(--navy);
+  color: #fff;
+  transform: scale(1.15);
+  box-shadow: 0 0 0 3px rgba(44,123,229,0.25);
+}
+
+.exam-nav-btn.answered {
+  background: #16a34a;
+  color: #fff;
+}
+
+.exam-nav-btn.empty {
+  background: #f1f5f9;
+  color: #334155;
+}
+
+/* HOVER */
+
+.exam-nav-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+}
+
+/* LEGENDA */
+
+.exam-legend {
+  font-size: 12px;
+  color: var(--text-muted);
+  display: flex;
+  gap: 15px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+/* DOT */
+
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.dot.current {
+  background: var(--navy);
+}
+
+.dot.answered {
+  background: #16a34a;
+}
+
+.dot.empty {
+  background: #9ca3af;
+}
+/* MIGLIORIA NAVIGATOR ESAME */
+
+.naaf-index-scroll .btn {
+  transition: all 0.15s ease;
+}
+
+/* hover più chiaro */
+.naaf-index-scroll .btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+}
+
+/* domanda corrente migliorata */
+.naaf-current {
+  transform: scale(1.2);
+  font-weight: bold;
+  box-shadow: 0 0 0 3px #0d6efd;
+  z-index: 2;
+}
+
+/* scroll più fluido */
+.naaf-index-scroll {
+  scroll-behavior: smooth;
+}/* NAVBAR BIANCA FORZATA */
+
+.navbar.naaf-exam-nav {
+  background: #ffffff !important;
+  border-bottom: 1px solid #e5e7eb;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+/* testo scuro */
+.navbar.naaf-exam-nav * {
+  color: #1e293b !important;
+}
+/* FIX NAVBAR BIANCA (SAFE - NON TOCCA ALTRO) */
+
+.naaf-exam-nav.navbar {
+  background: #ffffff !important;
+  border-bottom: 1px solid #e5e7eb !important;
+}
+
+.naaf-exam-nav.navbar * {
+  color: #1e293b !important;
+}
+/* NAVBAR COMPATTA */
+
+.naaf-exam-nav.navbar {
+  padding: 6px 12px !important;
+  min-height: auto !important;
+}
+
+/* riduce spazio interno */
+.naaf-exam-nav .container-fluid {
+  padding-left: 8px !important;
+  padding-right: 8px !important;
+}
+
+/* allinea meglio gli elementi */
+.naaf-exam-nav .d-flex {
+  gap: 10px !important;
+}
+
+/* logo più compatto */
+.naaf-exam-nav div:first-child {
+  font-size: 0.9rem !important;
+}
+
+/* timer più piccolo */
+
+#naafTimer {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #0d6efd;
+}
