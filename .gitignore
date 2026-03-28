@@ -11,6 +11,7 @@ files/*.xlsx
 views/pdf/
 views/admin/pubblicazioni_path
 !dump.sql
+.idea/
 Salva: Ctrl+O → Invio → Ctrl+X
 
 Passo 2 — Rimuovi dal tracking i file che non devono stare nel repo
