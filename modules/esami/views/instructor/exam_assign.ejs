@@ -1,526 +1,237 @@
-
 <%- include('../partials/head') %>
 <%- include('../partials/nav') %>
 
 <style>
-  /* ================================
-     UI – Assegna esame (solo grafica)
-     ================================ */
-  .naaf-page { max-width: 1100px; }
   .naaf-card { border-radius: 16px; }
-  .naaf-section-title { font-weight: 700; letter-spacing: .2px; }
-  .naaf-muted { color: rgba(33, 37, 41, .65); }
 
-  /* Student live search */
-  #studentAutocomplete { border-radius: 14px; font-size: 1.05rem; }
-  #studentResults { border-radius: 12px; }
-  #studentResults .list-group-item { padding: .6rem .75rem; font-size: .98rem; text-align: left; }
-  .naaf-student-select-hidden {
-    position: absolute !important;
-    left: -9999px !important;
-    width: 1px !important;
-    height: 1px !important;
-    overflow: hidden !important;
+  .naaf-header { margin-bottom: 20px; }
+
+  .naaf-cta-bar {
+    background: linear-gradient(135deg, #f8fafc, #eef2f7);
+    border: 1px solid #e3e7ee;
+    border-radius: 14px;
+    padding: 16px 20px;
+    margin-bottom: 24px;
+    text-align: center;
   }
 
-  /* Better label rhythm */
-  .naaf-form .form-label { margin-bottom: .35rem; }
-  .naaf-form .form-text { margin-top: .25rem; line-height: 1.15; }
-
-  /* Topic distribution box */
-  #topicDistBox { border-radius: 14px; }
-</style>
-<style>
-  /* Switch più grande e moderno */
-  .switch-big .form-check-input {
-    width: 2.6rem;
-    height: 1.4rem;
-    cursor: pointer;
+  .form-main {
+    border: 1px solid #e3e7ee;
+    border-radius: 14px;
+    padding: 24px;
+    background: #fff;
   }
 
-  .switch-big .form-check-input:checked {
-    background-color: #0d6efd;
-    border-color: #0d6efd;
+  .form-grid {
+    display: grid;
+    grid-template-columns: 2fr 2fr 1fr 1fr;
+    gap: 16px;
+    align-items: end;
   }
 
-  /* Label più grande e ben allineata */
-  .switch-big .form-check-label {
-    font-size: 1.2rem;
-    font-weight: 500;
-    margin-left: 0.5rem;
-    cursor: pointer;
+  @media (max-width: 992px) {
+    .form-grid {
+      grid-template-columns: 1fr;
+    }
   }
 
-  /* Migliora l’allineamento verticale */
-  .switch-big {
-    display: flex;
-    align-items: center;
-    gap: 0.6rem;
+  .preview-box {
+    margin-top: 20px;
+    padding: 16px;
+    border-radius: 12px;
+    background: #f6f8fb;
+    border: 1px solid #e3e7ee;
+  }
+
+  .preview-item {
+    font-size: 0.9rem;
   }
 </style>
 
+<div class="bg-white border shadow-sm p-4 naaf-card">
 
-
-
-
-
-
-  <div class="bg-white border shadow-sm p-4 naaf-card">
-    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
-      <div>
-        <h1 class="h5 mb-1 naaf-section-title">Assegna esame</h1>
-       
-     
-
-    <form class="naaf-form" method="post" action="/esami/instructor/exams/assign">
-
-      <!-- Selezione allievo -->
-      <div class="border rounded-3 p-3 p-md-4 mb-3" style="border-radius:16px;">
-        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
-        
-        <label class="form-label" for="studentAutocomplete">Cerca e seleziona (inserisci almeno 3 caratteri) </label>
-        <input
-          type="text"
-          id="studentAutocomplete"
-          class="form-control form-control-lg fw-semibold"
-          list="studentsDatalist"
-          placeholder="Es. Rossi Mario — mario.rossi@email.it"
-          autocomplete="off"
-        >
-        <hr class="my-3>"
-        <datalist id="studentsDatalist"></datalist>
-        <div id="studentResults" class="list-group mt-2 d-none" style="max-height:220px; overflow:auto;"></div>
-        <!--<div class="text-danger small d-none mt-2" id="studentAutocompleteErr">Seleziona un allievo valido dai suggerimenti.</div>
-
-        <!-- Select reale (hidden) usato dal server -->
-        <select class="form-select naaf-student-select-hidden" name="student_id" required id="studentSelect">
-          <% students.forEach(s => { %>
-            <option value="<%= s.id %>"><%= s.rank %> <%= s.surname %> <%= s.name %> - <%= s.email %> (<%= s.command || '-' %> / <%= s.category || '-' %>)</option>
-          <% }) %>
-        </select>
-      </div><!-- Parametri esame -->
-
-      <div class="border rounded-3 p-3 p-md-4 mb-3 bg-white" style="border-radius:16px !important;">
-
-  <div class="fw-semibold fs-5 mb-3">Parametri test</div>
-
-  <div class="row g-4">
-
-    <!-- Tipologia -->
-    <div class="col-md-6">
-      <label class="form-label fw-medium" for="examType">Tipologia</label>
-      <select class="form-select form-select-lg" id="examType" name="exam_type" required>
-        <% types.forEach(t => { %>
-          <option value="<%= t %>"><%= t %></option>
-        <% }) %>
-      </select>
-
-      <% if (!types.length) { %>
-        <div class="form-text text-danger mt-1">
-          Nessuna tipologia presente: importa prima un Excel.
-        </div>
-      <% } %>
-    </div>
-
-    <!-- Numero domande -->
-    <div class="col-md-3">
-      <label class="form-label fw-medium" for="numQuestions">Numero domande</label>
-      <input class="form-control form-control-lg" id="numQuestions" type="number"
-             name="num_questions" value="20" min="1" max="200" required>
-      <div class="form-text">Min 1, max 200</div>
-    </div>
-
-    <!-- Durata -->
-    <div class="col-md-3">
-      <label class="form-label fw-medium" for="durationMinutes">Durata (min)</label>
-      <input id="durationMinutes" type="number" class="form-control form-control-lg"
-             name="duration_minutes" min="1" max="120" value="120" required>
-      <div class="form-text">Max 120 minuti</div>
-    </div>
-
+  <div class="naaf-header">
+    <h1 class="h5 mb-1">📝 Assegna esame</h1>
+    <div class="text-muted small">Compila i parametri e assegna rapidamente un test</div>
   </div>
-</div>
 
+  <div class="naaf-cta-bar">
+    <div class="fw-semibold mb-1">Stai creando un nuovo esame</div>
+  </div>
 
-      <!-- Personalizzazione per argomenti -->
-      <div class="border rounded-3 p-3 p-md-4" style="border-radius:16px;">
-        <div class="d-flex align-items-start justify-content-between flex-wrap gap-2">
-          <div>
-            <div class="fw-semibold">Seleziona test per argomenti</div>
-            
-          <div class="form-check form-switch switch-big">
-  <input class="form-check-input" type="checkbox" id="useTopicDist">
-  <label class="form-check-label" for="useTopicDist">Attiva</label>
-</div>
+  <form method="post" action="/esami/instructor/exams/assign">
 
+    <div class="form-main">
+
+      <div class="form-grid">
+
+        <!-- ALLIEVO -->
+        <div>
+          <label class="form-label">👤 Allievo</label>
+          <input id="studentAutocomplete" class="form-control" placeholder="Cerca..." autocomplete="off">
+
+          <div id="selectedStudentBox" class="alert alert-success mt-2 py-2 px-3 d-none">
+            ✔ <span id="selectedStudentText"></span>
+            <button type="button" class="btn btn-sm btn-link p-0" id="changeStudentBtn">cambia</button>
+          </div>
+
+          <div id="studentResults" class="list-group mt-2 d-none"></div>
+
+          <select name="student_id" id="studentSelect" style="display:none" required>
+            <option value="">Seleziona</option>
+            <% students.forEach(s => { %>
+              <option value="<%= s.id %>">
+                <%= s.rank %> <%= s.surname %> <%= s.name %> - <%= s.email %>
+              </option>
+            <% }) %>
+          </select>
         </div>
 
-        <hr class="my-3">
-        <div id="topicDistBox" class="border p-3 bg-light" style="display:none;">
-            <div class="small text-muted mb-2">
-              Se compili questa tabella, la <b>somma</b> dei numeri deve essere uguale a <b>Numero domande</b>.
-              Se lasci tutto a 0, l'esame verra generato come prima.
-            </div>
-
-            <input type="hidden" name="topics_counts" id="topicsCounts" value="[]">
-            <input type="hidden" name="topics_filter" id="topicsFilterLegacy" value="">
-
-            <div class="table-responsive">
-              <table class="table table-sm align-middle mb-2">
-                <thead>
-                  <tr>
-                    <th style="width: 90px;">Usa</th>
-                    <th>Argomento</th>
-                    <th style="width: 140px;">Disponibili</th>
-                    <th style="width: 160px;">N. domande</th>
-                  </tr>
-                </thead>
-                <tbody id="topicsTableBody">
-                  <tr>
-                    <td colspan="4" class="text-muted small">Seleziona una tipologia esame per caricare gli argomenti...</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-
-            <div class="d-flex justify-content-between align-items-center">
-              <div class="small">
-                Totale selezionato: <b id="topicsTotal">0</b> / <b id="topicsTarget">0</b>
-              </div>
-              <div id="topicsWarn" class="small text-danger d-none">
-                La somma non coincide con "Numero domande".
-              </div>
-            </div>
+        <!-- TIPOLOGIA -->
+        <div>
+          <label class="form-label">Tipologia</label>
+          <select id="examType" class="form-select" name="exam_type">
+            <% types.forEach(t => { %>
+              <option value="<%= t %>"><%= t %></option>
+            <% }) %>
+          </select>
         </div>
+
+        <!-- NUM DOMANDE -->
+        <div>
+          <label class="form-label">Domande</label>
+          <input id="numQuestions" type="number" class="form-control" name="num_questions" value="20">
+        </div>
+
+        <!-- DURATA -->
+        <div>
+          <label class="form-label">Durata</label>
+          <input id="duration" type="number" class="form-control" name="duration_minutes" value="120">
+        </div>
+
       </div>
 
-      <div class="d-flex flex-wrap gap-2 mt-3">
-        <button class="btn btn-primary">Assegna esame</button>
-        <a class="btn btn-link" href="/esami/instructor">Annulla</a>
+      <!-- PREVIEW -->
+      <div class="preview-box">
+
+        <div class="fw-semibold mb-2">📊 Anteprima esame</div>
+
+        <div class="row">
+          <div class="col-md-3 preview-item">
+            📝 Tipo: <span id="pType"></span>
+          </div>
+          <div class="col-md-3 preview-item">
+            ❓ Domande: <span id="pQuestions"></span>
+          </div>
+          <div class="col-md-3 preview-item">
+            ⏱ Durata: <span id="pDuration"></span> min
+          </div>
+          <div class="col-md-3 preview-item">
+            ⚡ Tempo/domanda: <span id="pAvg"></span> min
+          </div>
+        </div>
+
       </div>
-    </form>
-  </div>
+
+    </div>
+
+    <div class="mt-4">
+      <button class="btn btn-primary px-5 py-2 fw-semibold">
+        ➕ Assegna esame
+      </button>
+    </div>
+
+  </form>
+
 </div>
 
-<%- include('../partials/foot') %>
-
 <script>
-(function(){
-  const sel = document.getElementById('examType');
-  const num = document.getElementById('numQuestions');
-  const body = document.getElementById('topicsTableBody');
-  const hid  = document.getElementById('topicsCounts');
-  const legacy = document.getElementById('topicsFilterLegacy');
-  const totalEl = document.getElementById('topicsTotal');
-  const targetEl = document.getElementById('topicsTarget');
-  const warnEl = document.getElementById('topicsWarn');
-  const form = sel && sel.closest('form');
-
-  function currentTarget(){
-    const v = parseInt(num && num.value ? num.value : '0', 10);
-    return Number.isFinite(v) ? v : 0;
-  }
-
-  function computeAndStore(){
-    const rows = Array.from(body.querySelectorAll('tr[data-topic]'));
-    const items = [];
-    let sum = 0;
-
-    for (const tr of rows) {
-      const topic = tr.getAttribute('data-topic');
-      const cb = tr.querySelector('input[type="checkbox"]');
-      const inp = tr.querySelector('input[type="number"]');
-      const checked = cb && cb.checked;
-      const val = inp ? parseInt(inp.value || '0', 10) : 0;
-
-      if (checked && Number.isFinite(val) && val > 0) {
-        items.push({ topic, count: val });
-        sum += val;
-      }
-    }
-
-    hid.value = JSON.stringify(items);
-    legacy.value = items.map(x => x.topic).join(',');
-
-    totalEl.textContent = String(sum);
-    targetEl.textContent = String(currentTarget());
-
-    const target = currentTarget();
-    const mismatch = (items.length > 0) && (sum !== target);
-    warnEl.classList.toggle('d-none', !mismatch);
-
-    if (form) {
-      const btn = form.querySelector('button[type="submit"], input[type="submit"]');
-      if (btn) btn.disabled = mismatch;
-    }
-  }
-
-  async function loadTopics(){
-    const examType = sel && sel.value ? sel.value : '';
-    body.innerHTML = '<tr><td colspan="4" class="text-muted small">Caricamento argomenti...</td></tr>';
-
-    if (!examType) {
-      body.innerHTML = '<tr><td colspan="4" class="text-muted small">Seleziona una tipologia esame per caricare gli argomenti...</td></tr>';
-      computeAndStore();
-      return;
-    }
-
-    try {
-      const r = await fetch('/instructor/exams/topics?exam_type=' + encodeURIComponent(examType));
-      const data = await r.json();
-      const topics = Array.isArray(data.topics) ? data.topics : [];
-
-      if (!topics.length) {
-        body.innerHTML = '<tr><td colspan="4" class="text-muted small">Nessun argomento trovato per questa tipologia.</td></tr>';
-        computeAndStore();
-        return;
-      }
-
-      body.innerHTML = topics.map(t => {
-        const safeTopic = String(t.topic || '');
-        const available = String(t.available || 0);
-        return `
-          <tr data-topic="${safeTopic.replace(/"/g,'&quot;')}">
-            <td><input class="form-check-input topic-check" type="checkbox"></td>
-            <td class="small">${safeTopic}</td>
-            <td class="small text-muted">${available}</td>
-            <td><input class="form-control form-control-sm topic-count" type="number" min="0" step="1" value="0" disabled></td>
-          </tr>`;
-      }).join('');
-
-      body.querySelectorAll('.topic-check').forEach(cb => {
-        cb.addEventListener('change', (e) => {
-          const tr = e.target.closest('tr');
-          const inp = tr.querySelector('.topic-count');
-          inp.disabled = !e.target.checked;
-          if (!e.target.checked) inp.value = '0';
-          computeAndStore();
-        });
-      });
-      body.querySelectorAll('.topic-count').forEach(inp => {
-        inp.addEventListener('input', computeAndStore);
-      });
-
-      computeAndStore();
-    } catch (e) {
-      body.innerHTML = '<tr><td colspan="4" class="text-danger small">Errore nel caricamento argomenti.</td></tr>';
-      computeAndStore();
-    }
-  }
-
-  if (sel) sel.addEventListener('change', loadTopics);
-  if (num) num.addEventListener('input', computeAndStore);
-
-  computeAndStore();
-  loadTopics();
-})();
-</script>
-
-
-<script>
-/* topicDistToggleSafe */
-(function(){
-  const toggle = document.getElementById('useTopicDist');
-  const box = document.getElementById('topicDistBox');
-  const body = document.getElementById('topicsTableBody');
-  const hid  = document.getElementById('topicsCounts');
-  const legacy = document.getElementById('topicsFilterLegacy');
-  const totalEl = document.getElementById('topicsTotal');
-  const warnEl = document.getElementById('topicsWarn');
-
-  if (!toggle || !box) return;
-
-  function resetDist(){
-    if (hid) hid.value = '[]';
-    if (legacy) legacy.value = '';
-    if (totalEl) totalEl.textContent = '0';
-    if (warnEl) warnEl.classList.add('d-none');
-    if (body) {
-      body.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
-      body.querySelectorAll('input[type="number"]').forEach(n => { n.value = '0'; n.disabled = true; });
-    }
-    // ensure submit enabled
-    const form = toggle.closest('form');
-    if (form) {
-      const btn = form.querySelector('button[type="submit"], input[type="submit"]');
-      if (btn) btn.disabled = false;
-    }
-  }
-
-  function apply(){
-    if (toggle.checked) {
-      box.style.display = '';
-    } else {
-      box.style.display = 'none';
-      resetDist();
-    }
-  }
-
-  toggle.addEventListener('change', apply);
-  toggle.checked = false;
-  apply();
-})();
-</script>
-<script>
-/* uiAssignExamToggle14 */
-(function(){
-  const toggle = document.getElementById('useTopicDist');
-  const box = document.getElementById('topicDistBox');
-  if (!toggle || !box) return;
-
-  function resetDist(){
-    const hid = document.getElementById('topicsCounts');
-    const legacy = document.getElementById('topicsFilterLegacy');
-    const totalEl = document.getElementById('topicsTotal');
-    const warnEl = document.getElementById('topicsWarn');
-    const body = document.getElementById('topicsTableBody');
-
-    if (hid) hid.value = '[]';
-    if (legacy) legacy.value = '';
-    if (totalEl) totalEl.textContent = '0';
-    if (warnEl) warnEl.classList.add('d-none');
-    if (body) {
-      body.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
-      body.querySelectorAll('input[type="number"]').forEach(n => { n.value = '0'; n.disabled = true; });
-    }
-    const form = toggle.closest('form');
-    if (form) {
-      const btn = form.querySelector('button[type="submit"], input[type="submit"]');
-      if (btn) btn.disabled = false;
-    }
-  }
-
-  function apply(){
-    const on = !!toggle.checked;
-    if (box.classList) box.classList.toggle('d-none', !on);
-    if (box.style) box.style.display = on ? '' : 'none';
-    if (!on) resetDist();
-  }
-
-  toggle.addEventListener('change', apply);
-  toggle.checked = false;
-  apply();
-})();
-</script>
-
-
-<script>
-/* topicDistToggle14D */
-(function(){
-  const toggle = document.getElementById('useTopicDist');
-  const box = document.getElementById('topicDistBox');
-  const body = document.getElementById('topicsTableBody');
-  const hid  = document.getElementById('topicsCounts');
-  const legacy = document.getElementById('topicsFilterLegacy');
-  const totalEl = document.getElementById('topicsTotal');
-  const warnEl = document.getElementById('topicsWarn');
-
-  if (!toggle || !box) return;
-
-  function enableSubmit(){
-    const form = toggle.closest('form');
-    if (!form) return;
-    const btn = form.querySelector('button[type="submit"], input[type="submit"]');
-    if (btn) btn.disabled = false;
-  }
-
-  function resetDist(){
-    if (hid) hid.value = '[]';
-    if (legacy) legacy.value = '';
-    if (totalEl) totalEl.textContent = '0';
-    if (warnEl) warnEl.classList.add('d-none');
-
-    if (body) {
-      body.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
-      body.querySelectorAll('input[type="number"]').forEach(n => { n.value = '0'; n.disabled = true; });
-    }
-    enableSubmit();
-  }
-
-  function apply(){
-    if (toggle.checked) {
-      box.style.display = '';
-    } else {
-      box.style.display = 'none';
-      resetDist();
-    }
-  }
-
-  toggle.addEventListener('change', apply);
-  toggle.checked = false;
-  apply();
-})();
-</script>
-
-<script>
-/* naafStudentLiveSearch16C2 */
 document.addEventListener('DOMContentLoaded', function(){
-  const input = document.getElementById('studentAutocomplete');
-  const sel = document.getElementById('studentSelect');
-  const box = document.getElementById('studentResults');
-  const err = document.getElementById('studentAutocompleteErr');
 
-  if (!input || !sel || !box) {
-    console.warn('[NAAF] LiveSearch missing elements:', {input: !!input, sel: !!sel, box: !!box});
-    return;
+  const type = document.getElementById('examType');
+  const q = document.getElementById('numQuestions');
+  const d = document.getElementById('duration');
+
+  function updatePreview(){
+    const questions = Number(q.value) || 0;
+    const duration = Number(d.value) || 0;
+
+    document.getElementById('pType').textContent = type.value;
+    document.getElementById('pQuestions').textContent = questions;
+    document.getElementById('pDuration').textContent = duration;
+
+    const avg = questions ? (duration / questions).toFixed(1) : 0;
+    document.getElementById('pAvg').textContent = avg;
   }
 
-  const opts = Array.from(sel.options)
-    .filter(o => o.value && !o.disabled)
-    .map(o => ({ id: o.value, label: (o.textContent || '').trim() }));
+  [type, q, d].forEach(el => el.addEventListener('input', updatePreview));
 
-  function setError(on){
-    if (!err) return;
-    err.classList.toggle('d-none', !on);
-  }
-  function hideBox(){ box.classList.add('d-none'); box.innerHTML = ''; }
-  function norm(x){ return String(x||'').toLowerCase(); }
+  updatePreview();
 
-  function render(matches){
-    box.innerHTML = '';
-    matches.slice(0, 15).forEach(m => {
-      const btn = document.createElement('button');
-      btn.type = 'button';
-      btn.className = 'list-group-item list-group-item-action';
-      btn.textContent = m.label;
-      btn.addEventListener('click', () => {
-        sel.value = m.id;
-        input.value = m.label;
-        setError(false);
-        hideBox();
-      });
-      box.appendChild(btn);
-    });
-    box.classList.toggle('d-none', matches.length === 0);
-  }
-
-  function apply(){
-    const q = norm(input.value).trim();
-    if (!q) { sel.value=''; setError(false); hideBox(); return; }
-    if (q.length < 3) { hideBox(); setError(true); return; }
-
-    const matches = opts.filter(o => norm(o.label).includes(q));
-    render(matches);
-    setError(true);
-    const exact = opts.find(o => o.label === input.value.trim());
-    if (exact) { sel.value = exact.id; setError(false); hideBox(); }
-  }
-
-  input.addEventListener('input', apply);
-  input.addEventListener('keyup', apply);
-
-  document.addEventListener('click', (e) => {
-    if (!box.contains(e.target) && e.target !== input) hideBox();
-  });
-
-  const form = input.closest('form');
-  if (form) {
-    form.addEventListener('submit', (e) => {
-      const v = (input.value || '').trim();
-      const hit = opts.find(o => o.label === v);
-      if (!hit) { e.preventDefault(); setError(true); input.focus(); }
-      else { sel.value = hit.id; setError(false); }
-    });
-  }
 });
 </script>
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+
+  const input = document.getElementById('studentAutocomplete');
+  const select = document.getElementById('studentSelect');
+  const results = document.getElementById('studentResults');
+
+  const selectedBox = document.getElementById('selectedStudentBox');
+  const selectedText = document.getElementById('selectedStudentText');
+  const changeBtn = document.getElementById('changeStudentBtn');
+
+  const students = Array.from(select.options)
+    .filter(o => o.value)
+    .map(o => ({
+      id: o.value,
+      text: o.textContent.trim()
+    }));
+
+  input.addEventListener('input', function(){
+    const q = this.value.toLowerCase().trim();
+
+    results.innerHTML = '';
+    results.classList.add('d-none');
+
+    if (q.length < 3) return;
+
+    const matches = students.filter(s =>
+      s.text.toLowerCase().includes(q)
+    );
+
+    matches.slice(0, 10).forEach(s => {
+      const el = document.createElement('button');
+      el.type = 'button';
+      el.className = 'list-group-item list-group-item-action';
+      el.textContent = s.text;
+
+      el.onclick = () => {
+        input.value = s.text;
+        select.value = s.id;
+
+        results.innerHTML = '';
+        results.classList.add('d-none');
+
+        selectedText.textContent = s.text;
+        selectedBox.classList.remove('d-none');
+      };
+
+      results.appendChild(el);
+    });
+
+    if (matches.length) {
+      results.classList.remove('d-none');
+    }
+  });
+
+  changeBtn.addEventListener('click', () => {
+    input.value = '';
+    select.value = '';
+    selectedBox.classList.add('d-none');
+    input.focus();
+  });
+
+});
+</script>
+<%- include('../partials/foot') %>

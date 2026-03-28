@@ -71,7 +71,7 @@ router.get('/', (req, res) => {
   if (!req.session.user) return res.redirect('/esami/login');
   const role = req.session.user.role;
   if (role === 'student')    return res.redirect('/esami/student');
-  if (role === 'instructor') return res.redirect('/esami/instructor');
+  if (role === 'instructor') return res.redirect('/esami/instructor/exams');
   if (role === 'admin')      return res.redirect('/esami/admin');
   res.redirect('/esami/login');
 });

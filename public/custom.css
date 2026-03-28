@@ -551,3 +551,65 @@ body {
   user-select: none;
   -webkit-user-select: none;
 }
+
+/* ===== FIX SPAZI FORM ESAMI ===== */
+
+.bg-white.border.shadow-sm.p-4 {
+  max-width: 100%;
+  margin: 0 10px 20px 10px;
+}
+
+/* sezioni interne (allievo, parametri, ecc) */
+.border.rounded-3 {
+  padding: 22px 24px !important;
+  margin-bottom: 22px !important;
+}
+
+/* header */
+.naaf-header {
+  margin-bottom: 28px !important;
+}
+
+/* CTA box */
+.naaf-cta-bar {
+  margin-bottom: 24px !important;
+  padding: 18px 22px !important;
+}
+
+/* labels più leggibili */
+.form-label {
+  margin-bottom: 6px !important;
+  font-size: 0.85rem;
+}
+
+/* input più ariosi */
+.form-control,
+.form-select {
+  padding: 12px 14px !important;
+  font-size: 0.95rem !important;
+}
+
+/* griglia parametri */
+.row.g-4 {
+  --bs-gutter-x: 22px;
+  --bs-gutter-y: 18px;
+}
+
+/* box allievo selezionato */
+#selectedStudentBox {
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.naaf-control {
+  height: 36px;
+  padding: 0 14px;
+  display: flex;
+  align-items: center;
+}
+
+.naaf-toolbar-top input {
+  height: 36px;
+  padding: 0 12px;
+}
