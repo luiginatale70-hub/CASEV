@@ -1,0 +1,76 @@
+<%- include('../partials/head') %>
+<%- include('../partials/nav') %>
+
+
+  <div class="bg-white border rounded-3 shadow-sm p-4 mb-3">
+    <h1 class="h5 mb-2">Area Admin</h1>
+    <p class="text-muted mb-0">Gestione portale , istruttori, allievi e reset password.</p>
+  </div>
+
+  <!-- UNA SOLA ROW PER TUTTE LE CARD -->
+  <div class="row g-3">
+
+    <div class="col-md-6">
+      <div class="card h-100 border rounded-3 shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title">Gestione classi</h5>
+          <p class="card-text">Crea e visualizza classi per comando e categoria.</p>
+          <a class="btn btn-outline-primary" href="/esami/admin/classes">Vai</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <div class="card h-100 border rounded-3 shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title">Gestione allievi</h5>
+          <p class="card-text">Aggiungi/modifica/sposta/cancella allievi e reset password.</p>
+          <a class="btn btn-outline-primary" href="/esami/admin/students">Vai</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <div class="card h-100 border rounded-3 shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title">Nuovo istruttore</h5>
+          <p class="card-text">Registra istruttori e invia password provvisoria.</p>
+          <a class="btn btn-outline-primary" href="/esami/admin/instructors/new">Vai</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <div class="card h-100 border rounded-3 shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title">Area istruttore</h5>
+          <p class="card-text">Import domande, assegnazione esami, report PDF.</p>
+          <a class="btn btn-outline-primary" href="/esami/instructor">Vai</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <div class="card h-100 border rounded-3 shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title mb-1">Storico audit</h5>
+          <p class="text-muted small mb-3">Chi ha fatto cosa e quando.</p>
+          <a class="btn btn-outline-primary" href="/esami/admin/audit">Apri audit</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <div class="card h-100 border rounded-3 shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title mb-1">Log accessi</h5>
+          <p class="text-muted small mb-3">Login/logout e tentativi falliti.</p>
+          <a class="btn btn-outline-primary" href="/esami/admin/access">Apri accessi</a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<%- include('../partials/foot') %>

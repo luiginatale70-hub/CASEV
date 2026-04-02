@@ -1,0 +1,149 @@
+<%- include('../partials/head') %>
+<%- include('../partials/nav') %>
+
+<style>
+.naaf-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;}
+.naaf-title{font-size:1.25rem;font-weight:600;}
+
+.naaf-toolbar{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.naaf-control{height:36px;display:flex;align-items:center;padding:0 12px;}
+.naaf-search{flex:1;min-width:220px;}
+.naaf-filters{display:flex;gap:6px;}
+.naaf-pill{border-radius:999px;font-size:0.8rem;}
+
+.naaf-card{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:12px;margin-top:14px;}
+
+.last-card{border:1px solid #eef1f4;border-radius:10px;padding:10px;height:100%;}
+.last-card:hover{box-shadow:0 4px 12px rgba(0,0,0,0.05);}
+</style>
+
+<div class="naaf-header">
+  <div>
+    <div class="naaf-title">Esami</div>
+    <div class="text-muted small">Gestione e monitoraggio esami</div>
+  </div>
+
+  <a href="/esami/instructor/exams/assign" class="btn btn-primary">
+    ➕ Assegna esame
+  </a>
+</div>
+
+<form class="naaf-toolbar" method="get" action="/esami/instructor/exams">
+  <input type="hidden" name="show" value="<%= show || 'active' %>">
+  <input type="hidden" name="sort" value="<%= sort || (show==='done'?'taken_at':'assigned_at') %>">
+  <input type="hidden" name="dir" value="<%= dir || 'desc' %>">
+
+  <input class="form-control naaf-control naaf-search"
+         name="q"
+         value="<%= q %>"
+         placeholder="Cerca..." />
+
+  <button class="btn btn-outline-primary naaf-control">Cerca</button>
+
+  <div class="naaf-filters">
+    <a class="btn naaf-control naaf-pill <%= (show==='active'||!show)?'btn-primary':'btn-outline-primary' %>"
+       href="/esami/instructor/exams?show=active&q=<%= encodeURIComponent(q||'') %>">Attivi</a>
+
+    <a class="btn naaf-control naaf-pill <%= show==='done'?'btn-primary':'btn-outline-primary' %>"
+       href="/esami/instructor/exams?show=done&q=<%= encodeURIComponent(q||'') %>">Svolti</a>
+
+    <a class="btn naaf-control naaf-pill <%= show==='all'?'btn-primary':'btn-outline-primary' %>"
+       href="/esami/instructor/exams?show=all&q=<%= encodeURIComponent(q||'') %>">Tutti</a>
+  </div>
+
+  <div class="ms-auto d-flex align-items-center gap-2">
+
+  <span class="small text-muted">Ordina:</span>
+
+  <a class="btn btn-outline-secondary naaf-control"
+     href="/esami/instructor/exams?show=<%= show||'active' %>&q=<%= encodeURIComponent(q||'') %>&sort=assigned_at&dir=<%= (sort==='assigned_at' && dir==='asc') ? 'desc' : 'asc' %>">
+    Data assegnazione <%= (sort==='assigned_at') ? (dir==='asc' ? '↑' : '↓') : '' %>
+  </a>
+
+  <a class="btn btn-outline-secondary naaf-control"
+     href="/esami/instructor/exams?show=<%= show||'active' %>&q=<%= encodeURIComponent(q||'') %>&sort=taken_at&dir=<%= (sort==='taken_at' && dir==='asc') ? 'desc' : 'asc' %>">
+    Data svolgimento <%= (sort==='taken_at') ? (dir==='asc' ? '↑' : '↓') : '' %>
+  </a>
+
+</div>
+</form>
+
+<% if (lastAssigned && lastAssigned.length) { %>
+<div class="naaf-card">
+  <div class="fw-semibold mb-2">Ultimi esami assegnati</div>
+  <div class="row g-2">
+    <% lastAssigned.forEach(e => { %>
+      <div class="col-md-4">
+        <div class="last-card">
+          <div><strong><%= e.rank %> <%= e.surname %></strong></div>
+          <div class="small text-muted"><%= e.name %></div>
+          <div class="small">📝 <%= e.exam_type %></div>
+          <div class="small text-muted">📅 <%= formatDateIT(e.assigned_at) || '-' %></div>
+          <div class="mt-1">
+            <span class="badge <%= e.status==='SVOLTO'?'bg-success':'bg-secondary' %>">
+              <%= e.status %>
+            </span>
+          </div>
+        </div>
+      </div>
+    <% }) %>
+  </div>
+</div>
+<% } %>
+
+<div class="naaf-card">
+  <div class="table-responsive">
+    <table class="table table-sm align-middle mb-0">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Allievo</th>
+          <th>Tipo</th>
+          <th>Stato</th>
+          <th>Data</th>
+          <th>Score</th>
+          <th>Report</th>
+          <th class="text-end">Azioni</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <% if (!rows.length) { %>
+          <tr><td colspan="8" class="text-muted">Nessun esame.</td></tr>
+        <% } %>
+
+        <% rows.forEach(e => { %>
+          <tr>
+            <td><%= e.id %></td>
+            <td>
+              <strong><%= e.rank %> <%= e.surname %></strong><br>
+              <small class="text-muted"><%= e.name %></small>
+            </td>
+            <td><%= e.exam_type %></td>
+            <td><span class="badge <%= e.status==='SVOLTO'?'bg-success':'bg-secondary' %>"><%= e.status %></span></td>
+            <td><%= formatDateIT(e.taken_at) || '-' %></td>
+            <td><%= (e.score_percent!=null) ? (Number(e.score_percent).toFixed(1)+'%') : '-' %></td>
+            <td>
+              <% if (e.status==='SVOLTO') { %>
+                <a href="/esami/instructor/exams/<%= e.id %>/report.pdf" target="_blank">PDF</a>
+              <% } else { %>
+                <span class="text-muted">-</span>
+              <% } %>
+            </td>
+            <td class="text-end">
+              <% if (e.status==='ASSEGNATO') { %>
+                <form method="post" action="/esami/instructor/exams/<%= e.id %>/delete" onsubmit="return confirm('Eliminare esame assegnato?')">
+                  <button class="btn btn-sm btn-outline-danger">Elimina</button>
+                </form>
+              <% } else { %>
+                <span class="text-muted small">—</span>
+              <% } %>
+            </td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<%- include('../partials/foot') %>

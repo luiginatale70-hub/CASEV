@@ -1,0 +1,35 @@
+<div class="page-header">
+  <h1 class="page-title">Pubblicazioni</h1>
+</div>
+
+<div class="card">
+  <div class="card-body">
+
+    {{#if current}}
+      <a href="/pubblicazioni" class="btn btn-sm btn-secondary mb-3">⬅ Torna root</a>
+    {{/if}}
+
+    <ul style="list-style:none;padding:0;">
+
+      {{#each pubs}}
+
+        {{#if (eq tipo "dir")}}
+          <li style="margin-bottom:10px;">
+            📁 <a href="/pubblicazioni?path={{path}}">{{nome}}</a>
+          </li>
+        {{/if}}
+
+        {{#if (eq tipo "file")}}
+          <li style="margin-bottom:10px;">
+            📄 <a href="/pubblicazioni/view/{{path}}" target="_blank" style="text-decoration:underline;">
+              {{nome}}
+            </a>
+          </li>
+        {{/if}}
+
+      {{/each}}
+
+    </ul>
+
+  </div>
+</div>

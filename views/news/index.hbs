@@ -1,0 +1,114 @@
+<style>
+.news-ticker-wrap {
+  background: linear-gradient(90deg, #0b1727 0%, #1a3a5c 100%);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 28px;
+  display: flex;
+  align-items: center;
+}
+.news-ticker-label {
+  background: #00d27a;
+  color: #000;
+  font-weight: 800;
+  font-size: 11px;
+  letter-spacing: 1px;
+  padding: 10px 16px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.news-ticker-scroll { overflow: hidden; flex: 1; padding: 10px 0; }
+.news-ticker-inner {
+  display: flex;
+  gap: 60px;
+  animation: ticker-scroll 30s linear infinite;
+  white-space: nowrap;
+}
+.news-ticker-inner:hover { animation-play-state: paused; }
+.news-ticker-item {
+  color: rgba(255,255,255,0.85);
+  font-size: 13px;
+  cursor: pointer;
+  text-decoration: none;
+  flex-shrink: 0;
+}
+.news-ticker-item:hover { color: #fff; text-decoration: underline; }
+.news-ticker-dot { color: #00d27a; margin-right: 8px; }
+@keyframes ticker-scroll {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+.news-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
+.news-card {
+  background: #fff;
+  border-radius: 12px;
+  border: 1px solid #e8ecf0;
+  overflow: hidden;
+  transition: transform .2s, box-shadow .2s;
+}
+.news-card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,0.1); }
+.news-card-header {
+  background: linear-gradient(135deg, #0b1727 0%, #1a3a5c 100%);
+  padding: 16px 20px 12px;
+  display: flex; justify-content: space-between; align-items: flex-start;
+}
+.news-badge {
+  font-size: 10px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 1px; padding: 3px 8px; border-radius: 20px;
+  background: rgba(0,210,122,0.2); color: #00d27a;
+}
+.news-badge.evidenza { background: rgba(255,193,7,0.2); color: #ffc107; }
+.news-date { color: rgba(255,255,255,0.4); font-size: 11px; }
+.news-card-body { padding: 16px 20px; }
+.news-card-title { font-weight: 600; font-size: 15px; color: #1a1a2e; margin-bottom: 8px; line-height: 1.4; }
+.news-card-excerpt { color: #666; font-size: 13px; line-height: 1.5; }
+.news-card-footer {
+  padding: 12px 20px;
+  border-top: 1px solid #f0f0f0;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.news-author { font-size: 12px; color: #888; }
+</style>
+
+<div class="page-header">
+  <h1 class="page-title">News &amp; Comunicati</h1>
+  <p class="page-sub">Aggiornamenti e comunicazioni ufficiali</p>
+</div>
+
+{{#if news.length}}
+<div class="news-ticker-wrap">
+  <div class="news-ticker-label">ULTIME NEWS</div>
+  <div class="news-ticker-scroll">
+    <div class="news-ticker-inner">
+      {{#each news}}<a href="/news/{{id}}" class="news-ticker-item"><span class="news-ticker-dot">&#9679;</span>{{titolo}}</a>{{/each}}
+      {{#each news}}<a href="/news/{{id}}" class="news-ticker-item"><span class="news-ticker-dot">&#9679;</span>{{titolo}}</a>{{/each}}
+    </div>
+  </div>
+</div>
+
+<div class="news-grid">
+  {{#each news}}
+  <div class="news-card">
+    <div class="news-card-header">
+      <span class="news-badge {{#if in_evidenza}}evidenza{{/if}}">{{#if in_evidenza}}In evidenza{{else}}{{categoria}}{{/if}}</span>
+      <span class="news-date">{{formatDate published_at}}</span>
+    </div>
+    <div class="news-card-body">
+      <div class="news-card-title">{{titolo}}</div>
+      <div class="news-card-excerpt">{{excerpt}}</div>
+    </div>
+    <div class="news-card-footer">
+      <span class="news-author">{{cognome}} {{nome}}</span>
+      <a href="/news/{{id}}" class="btn btn-sm btn-outline-primary">Leggi &rarr;</a>
+    </div>
+  </div>
+  {{/each}}
+</div>
+
+{{else}}
+<div class="card text-center py-5">
+  <h3 class="mt-3 text-muted">Nessuna news pubblicata</h3>
+  <p class="text-muted">Le comunicazioni appariranno qui non appena pubblicate.</p>
+</div>
+{{/if}}

@@ -1,0 +1,85 @@
+<div class="page-header">
+  <h1 class="page-title">📊 Dashboard Amministrazione</h1>
+  <p class="page-sub">Panoramica del sistema CASEV</p>
+</div>
+
+<!-- STATS -->
+<div class="stats-grid">
+
+  <div class="stat-card">
+    <div class="stat-icon">✈️</div>
+    <div class="stat-value">{{stats.totPiloti}}</div>
+    <div class="stat-label">Piloti</div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-icon">🎧</div>
+    <div class="stat-value">{{stats.totOperatori}}</div>
+    <div class="stat-label">Operatori di volo</div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-icon">🔧</div>
+    <div class="stat-value">{{stats.totTecnici}}</div>
+    <div class="stat-label">Tecnici di volo</div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-icon">📝</div>
+    <div class="stat-value">{{stats.totAssegnati}}</div>
+    <div class="stat-label">Esami in attesa</div>
+    <div class="stat-sub">{{stats.totSvolti}} completati</div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-icon">📰</div>
+    <div class="stat-value">{{stats.totNews}}</div>
+    <div class="stat-label">News</div>
+    <div class="stat-sub">{{stats.totPub}} pubblicazioni</div>
+  </div>
+
+</div>
+
+<!-- AZIONI PRINCIPALI -->
+<div class="section-card mt-4">
+  <div class="section-header">
+    <h2 class="section-title">⚡ Azioni principali</h2>
+  </div>
+
+  <div class="quick-actions">
+
+    <a href="/esami/instructor/exams/assign" class="quick-btn">➕ Assegna Esame</a>
+    <a href="/esami/instructor/exams" class="quick-btn">📊 Lista Esami</a>
+    <a href="/esami/instructor" class="quick-btn">📝 Admin Esami</a>
+
+  </div>
+</div>
+
+<!-- GESTIONE -->
+<div class="section-card mt-4">
+  <div class="section-header">
+    <h2 class="section-title">📂 Gestione</h2>
+  </div>
+
+  <div class="quick-actions">
+
+    <a href="/admin/utenti" class="quick-btn">👥 Personale EFV</a>
+    <a href="/news" class="quick-btn">📰 Gestione News</a>
+
+  </div>
+</div>
+
+<!-- CONFIGURAZIONE -->
+<div class="section-card mt-4">
+  <div class="section-header">
+    <h2 class="section-title">⚙️ Configurazione</h2>
+  </div>
+
+  <div class="quick-actions">
+
+    <a href="/admin/manuali-path" class="quick-btn">📚 Percorso Manuali</a>
+    <a href="/admin/pubblicazioni-path" class="quick-btn">📁 Percorso Pubblicazioni</a>
+    <a href="/admin/log" class="quick-btn">📋 Log Accessi</a>
+
+  </div>
+</div>

@@ -1,0 +1,130 @@
+<%- include('../partials/head') %>
+<%- include('../partials/nav') %>
+
+<%
+  const _accessRows =
+    (typeof accessRows !== 'undefined' && accessRows) ? accessRows :
+    (typeof accessLogRows !== 'undefined' && accessLogRows) ? accessLogRows :
+    (typeof accessLogs !== 'undefined' && accessLogs) ? accessLogs :
+    (typeof access !== 'undefined' && access) ? access : [];
+
+  const _auditRows =
+    (typeof auditRows !== 'undefined' && auditRows) ? auditRows :
+    (typeof auditLogRows !== 'undefined' && auditLogRows) ? auditLogRows :
+    (typeof auditLogs !== 'undefined' && auditLogs) ? auditLogs :
+    (typeof audit !== 'undefined' && audit) ? audit : [];
+
+  const _stats = (typeof stats !== 'undefined' && stats) ? stats : {};
+%>
+
+<!-- HEADER -->
+<div class="naaf-pagehead d-flex align-items-center justify-content-between flex-wrap gap-2">
+  <div>
+    <h1 class="naaf-page-title mb-1">Dashboard Amministratore</h1>
+    <p class="mb-0" style="opacity:.6; font-size:.85rem;">
+      Aggiornata: <%= new Date().toLocaleString('it-IT') %>
+    </p>
+  </div>
+  <div style="font-size:2rem; opacity:.4;">🛡️</div>
+</div>
+
+<!-- STATISTICHE -->
+<div class="row gy-4 gx-4 mb-4">
+
+  <!-- Allievi -->
+  <div class="col-6 col-md-4">
+    <a href="/esami/admin/students" class="text-decoration-none">
+      <div class="naaf-stat-card casev-hover">
+        <div class="naaf-stat-icon" style="background:rgba(16,185,129,.12);">👤</div>
+        <div class="naaf-stat-value"><%= _stats.studentsTotal ?? 0 %></div>
+        <div class="naaf-stat-label">Allievi</div>
+      </div>
+    </a>
+  </div>
+
+  <!-- Esami -->
+  <div class="col-6 col-md-4">
+    <a href="/esami/admin/exams" class="text-decoration-none">
+      <div class="naaf-stat-card casev-hover">
+        <div class="naaf-stat-icon" style="background:rgba(245,158,11,.12);">📋</div>
+        <div class="naaf-stat-value"><%= _stats.assignmentsTotal ?? 0 %></div>
+        <div class="naaf-stat-label">Esami assegnati</div>
+      </div>
+    </a>
+  </div>
+
+  <!-- In corso -->
+  <div class="col-6 col-md-4">
+    <div class="naaf-stat-card" style="opacity:.75;">
+      <div class="naaf-stat-icon" style="background:rgba(239,68,68,.12);">⏱️</div>
+      <div class="naaf-stat-value"><%= _stats.inProgressTotal ?? 0 %></div>
+      <div class="naaf-stat-label">In corso</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- MONITORAGGIO -->
+<div class="row g-4 mb-4">
+
+  <div class="col-md-6">
+    <div class="card naaf-card-accent h-100">
+      <div class="card-header">🔐 Accessi</div>
+      <div class="card-body">
+        <div class="d-flex gap-2">
+          <a href="/esami/admin/access" class="btn-casev btn-casev-outline">Visualizza</a>
+          <a href="/esami/admin/access.csv" class="btn-casev btn-casev-outline">CSV</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-6">
+    <div class="card naaf-card-accent h-100">
+      <div class="card-header">📊 Audit</div>
+      <div class="card-body">
+        <div class="d-flex gap-2">
+          <a href="/esami/admin/audit" class="btn-casev btn-casev-outline">Visualizza</a>
+          <a href="/esami/admin/audit.csv" class="btn-casev btn-casev-outline">CSV</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- AZIONI -->
+<div class="card naaf-card-accent mb-4">
+  <div class="card-header">⚙️ Gestione</div>
+  <div class="card-body">
+    <a href="/esami/admin/students" class="btn-casev">Allievi</a>
+    <a href="/esami/admin/exams" class="btn-casev">Esami</a>
+  </div>
+</div>
+
+<!-- STATO -->
+<div class="card naaf-card-accent mb-4">
+  <div class="card-header">📈 Stato esami</div>
+  <div class="card-body">
+    <div class="row g-3">
+      <div class="col-6">
+        <div class="p-3 text-center" style="background:rgba(16,185,129,.08);">
+          <div style="font-size:1.6rem; font-weight:700;"><%= _stats.takenTotal ?? 0 %></div>
+          <div style="font-size:.75rem;">Completati</div>
+        </div>
+      </div>
+      <div class="col-6">
+        <div class="p-3 text-center" style="background:rgba(239,68,68,.08);">
+          <div style="font-size:1.6rem; font-weight:700;"><%= _stats.timedOutTotal ?? 0 %></div>
+          <div style="font-size:.75rem;">Timeout</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="naaf-footer">
+  By NAAF &copy; <%= new Date().getFullYear() %>
+</div>
+
+<%- include('../partials/foot') %>

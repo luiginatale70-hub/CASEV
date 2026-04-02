@@ -1,0 +1,286 @@
+<%- include('../partials/head') %>
+<%- include('../partials/nav') %>
+
+<style>
+  .naaf-card { border-radius: 16px; }
+
+  .section-head {
+    margin-bottom: 20px;
+  }
+
+  .section-title {
+    font-size: 1.3rem;
+    font-weight: 600;
+  }
+
+  .form-main {
+    border: 1px solid #e3e7ee;
+    border-radius: 14px;
+    padding: 24px;
+    background: #fff;
+  }
+
+  .form-grid {
+    display: grid;
+    grid-template-columns: 2fr 2fr 1fr 1fr;
+    gap: 16px;
+    align-items: end;
+  }
+
+  @media (max-width: 992px) {
+    .form-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .preview-box {
+    margin-top: 24px;
+    padding: 18px;
+    border-radius: 12px;
+    background: #f6f8fb;
+    border: 1px solid #e3e7ee;
+  }
+
+  .preview-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+  }
+
+  .preview-item {
+    font-size: 0.9rem;
+  }
+
+  .submit-wrap {
+    margin-top: 30px;
+    text-align: center;
+  }
+
+  .btn-main {
+    width: 280px;
+    height: 45px;
+    background:#0d6efd;
+    color:white;
+    border:none;
+    border-radius:6px;
+    font-weight:600;
+  }
+</style>
+
+<div style="padding:20px 25px;">
+
+  <!-- HEADER -->
+  <div class="section-head">
+    <div class="section-title">Assegna Esame</div>
+    <div class="text-muted small">Configura rapidamente un nuovo esame</div>
+  </div>
+
+ <form id="assignForm" method="post" action="/esami/instructor/exams/assign">
+
+    <div class="form-main">
+
+      <div class="form-grid">
+
+        <!-- ALLIEVO -->
+        <div>
+          <label class="form-label">👤 Allievo</label>
+          <input id="studentAutocomplete" class="form-control" placeholder="Cerca..." autocomplete="off">
+
+          <div id="selectedStudentBox" class="alert alert-success mt-2 py-2 px-3 d-none">
+            ✔ <span id="selectedStudentText"></span>
+            <button type="button" class="btn btn-sm btn-link p-0" id="changeStudentBtn">cambia</button>
+          </div>
+
+          <div id="studentResults" class="list-group mt-2 d-none"></div>
+
+          <select name="student_id" id="studentSelect" style="display:none" required>
+            <option value="">Seleziona</option>
+            <% students.forEach(s => { %>
+              <option value="<%= s.id %>">
+                <%= s.rank %> <%= s.surname %> <%= s.name %> - <%= s.email %>
+              </option>
+            <% }) %>
+          </select>
+        </div>
+
+        <!-- TIPOLOGIA -->
+        <div>
+          <label class="form-label">📄 Tipologia</label>
+          <select id="examType" class="form-select" name="exam_type">
+            <% types.forEach(t => { %>
+              <option value="<%= t %>"><%= t %></option>
+            <% }) %>
+          </select>
+        </div>
+
+        <!-- NUM DOMANDE -->
+        <div>
+          <label class="form-label">🔢 Domande</label>
+          <input id="numQuestions" type="number" class="form-control" name="num_questions" value="20">
+        </div>
+
+        <!-- DURATA -->
+        <div>
+          <label class="form-label">⏱ Durata</label>
+          <input id="duration" type="number" class="form-control" name="duration_minutes" value="120">
+        </div>
+
+      </div>
+
+      <!-- PREVIEW -->
+      <div class="preview-box">
+
+        <div class="fw-semibold mb-3">📊 Anteprima</div>
+
+        <div class="preview-grid">
+          <div class="preview-item">📝 <span id="pType"></span></div>
+          <div class="preview-item">❓ <span id="pQuestions"></span></div>
+          <div class="preview-item">⏱ <span id="pDuration"></span> min</div>
+          <div class="preview-item">⚡ <span id="pAvg"></span> min</div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- SUBMIT -->
+    <div class="submit-wrap">
+      <button id="submitBtn" class="btn btn-primary">
+    
+        Assegna Esame
+      </button>
+    </div>
+
+  </form>
+
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+
+  const type = document.getElementById('examType');
+  const q = document.getElementById('numQuestions');
+  const d = document.getElementById('duration');
+
+  function updatePreview(){
+    const questions = Number(q.value) || 0;
+    const duration = Number(d.value) || 0;
+
+    document.getElementById('pType').textContent = type.value;
+    document.getElementById('pQuestions').textContent = questions;
+    document.getElementById('pDuration').textContent = duration;
+
+    const avg = questions ? (duration / questions).toFixed(1) : 0;
+    document.getElementById('pAvg').textContent = avg;
+  }
+
+  [type, q, d].forEach(el => el.addEventListener('input', updatePreview));
+  updatePreview();
+
+});
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+
+  const input = document.getElementById('studentAutocomplete');
+  const select = document.getElementById('studentSelect');
+  const results = document.getElementById('studentResults');
+
+  const selectedBox = document.getElementById('selectedStudentBox');
+  const selectedText = document.getElementById('selectedStudentText');
+  const changeBtn = document.getElementById('changeStudentBtn');
+
+  const students = Array.from(select.options)
+    .filter(o => o.value)
+    .map(o => ({
+      id: o.value,
+      text: o.textContent.trim()
+    }));
+
+  input.addEventListener('input', function(){
+    const q = this.value.toLowerCase().trim();
+
+    results.innerHTML = '';
+    results.classList.add('d-none');
+
+    if (q.length < 3) return;
+
+    const matches = students.filter(s =>
+      s.text.toLowerCase().includes(q)
+    );
+
+    matches.slice(0, 10).forEach(s => {
+      const el = document.createElement('button');
+      el.type = 'button';
+      el.className = 'list-group-item list-group-item-action';
+      el.textContent = s.text;
+
+      el.onclick = () => {
+        input.value = s.text;
+        select.value = s.id;
+
+        results.innerHTML = '';
+        results.classList.add('d-none');
+
+        selectedText.textContent = s.text;
+        selectedBox.classList.remove('d-none');
+      };
+
+      results.appendChild(el);
+    });
+
+    if (matches.length) {
+      results.classList.remove('d-none');
+    }
+  });
+
+  changeBtn.addEventListener('click', () => {
+    input.value = '';
+    select.value = '';
+    selectedBox.classList.add('d-none');
+    input.focus();
+  });
+
+});
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+
+  const form = document.getElementById('assignForm');
+  const btn = document.getElementById('submitBtn');
+
+  const student = document.getElementById('studentSelect');
+  const questions = document.getElementById('numQuestions');
+  const duration = document.getElementById('duration');
+
+  form.addEventListener('submit', function(e){
+
+    // VALIDAZIONE
+    if (!student.value) {
+      alert('Seleziona un allievo');
+      e.preventDefault();
+      return;
+    }
+
+    if (questions.value <= 0) {
+      alert('Numero domande non valido');
+      e.preventDefault();
+      return;
+    }
+
+    if (duration.value <= 0) {
+      alert('Durata non valida');
+      e.preventDefault();
+      return;
+    }
+
+    // FEEDBACK CLICK
+    btn.disabled = true;
+    btn.style.opacity = "0.7";
+    btn.textContent = "Creazione in corso...";
+  });
+
+});
+</script>
+<%- include('../partials/foot') %>

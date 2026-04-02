@@ -1,0 +1,192 @@
+<!-- NAV-CASEV-v1 -->
+<% const __examMode = (typeof examMode !== 'undefined' && examMode); %>
+
+<!-- NAV SEMPRE VISIBILE -->
+<nav class="navbar naaf-exam-nav" style="background:#ffffff; border-bottom:1px solid #e5e7eb;">
+  <div class="container-fluid px-3">
+    <div class="d-flex align-items-center gap-3 w-100" style="color:#1e293b;">
+
+      <!-- Logo testo CASEV -->
+      <div style="color:#0b1727;font-weight:800;font-size:1rem;letter-spacing:2px;white-space:nowrap;">
+        CASEV
+      </div>
+
+      <!-- Timer SEMPRE visibile -->
+      <div class="ms-2">
+        <%
+          const __rem0 = (typeof examTimer !== 'undefined' && examTimer && examTimer.remainingSeconds != null)
+            ? Math.max(0, Number(examTimer.remainingSeconds) || 0)
+            : 0;
+          const last5 = __rem0 <= 300;
+        %>
+
+        <span id="naafTimer" 
+              data-remaining="<%= __rem0 %>" 
+              data-exam-id="<%= typeof examId !== 'undefined' ? examId : '' %>"
+              style="font-weight:600; color:#1e293b;">
+          ⏱ <span id="naafTimerText">--:--</span>
+        </span>
+
+        <% if (last5 && __rem0 > 0) { %>
+          <span class="badge bg-warning text-dark ms-2" style="font-weight:700;">
+            ⚠️ Ultimi 5 min
+          </span>
+        <% } %>
+        
+        <script>
+          (function () {
+            var wrap = document.getElementById('naafTimer');
+            var out  = document.getElementById('naafTimerText');
+            if (!wrap || !out) return;
+
+            var remaining = parseInt(wrap.getAttribute('data-remaining'), 10);
+            if (isNaN(remaining) || remaining <= 0) {
+              out.textContent = '00:00';
+              return;
+            }
+
+            var examId = wrap.getAttribute('data-exam-id');
+
+            function fmt(s) {
+              s = Math.max(0, s|0);
+              return String(Math.floor(s/60)).padStart(2,'0') + ':' + String(s%60).padStart(2,'0');
+            }
+
+            function tick() {
+              out.textContent = fmt(remaining);
+              if (remaining <= 0) {
+                if (examId) window.location.href = '/esami/student/exams/' + encodeURIComponent(examId) + '/timeout';
+                return;
+              }
+              remaining -= 1;
+              setTimeout(tick, 1000);
+            }
+
+            tick();
+          })();
+        </script>
+      </div>
+
+      <!-- User email -->
+      <div class="ms-auto d-none d-md-flex align-items-center gap-2">
+        <% if (user) { %>
+          <span style="color:rgba(255,255,255,.55);font-size:.78rem;font-family:'DM Mono',monospace;"><%= user.email %></span>
+        <% } %>
+      </div>
+    </div>
+  </div>
+</nav>
+
+
+<!-- NORMAL MODE LAYOUT (SEMPRE VISIBILE) -->
+<div class="casev-layout">
+
+  <!-- Sidebar -->
+  <aside class="casev-sidebar" id="casevSidebar">
+
+  <div class="sidebar-header" style="display:flex;flex-direction:column;align-items:center;">
+
+    <div class="sidebar-logo-area" style="display:flex;justify-content:center;width:100%;">
+      <div class="sidebar-logo-icon" style="background:none;padding:0;display:flex;justify-content:center;width:100%;">
+        <img src="/img/Logo-naaf.png" 
+             alt="CASEV" 
+             style="width:100px;height:100px;object-fit:contain;">
+      </div>
+    </div>
+
+    <div class="sidebar-badge">ESAMI ON-LINE</div>
+
+  </div>
+
+
+
+    <nav class="sidebar-nav">
+      <% if (!currentUser) { %>
+        <div class="nav-section">
+          <div class="nav-section-label">Accesso</div>
+          <a href="/esami/login"><span class="nav-icon">🔑</span> Login</a>
+        </div>
+      <% } else { %>
+
+        <% if (currentUser.role === 'student') { %>
+        <div class="nav-section">
+          <div class="nav-section-label">Area Allievo</div>
+          <a href="/esami/student"><span class="nav-icon">🎓</span> Area personale</a>
+          <a href="/esami/student/exams"><span class="nav-icon">📋</span> I miei esami</a>
+        </div>
+        <% } %>
+
+        <% if (currentUser.role === 'instructor' || currentUser.role === 'admin') { %>
+        <div class="nav-section">
+          <div class="nav-section-label">Area Istruttore</div>
+          <a href="/esami/instructor"><span class="nav-icon">✈️</span> Dashboard</a>
+          <a href="/esami/instructor/exams"><span class="nav-icon">📋</span> Elenco Esami</a>
+          <a href="/esami/instructor/exams/assign"><span class="nav-icon">📝</span> Assegna Esame</a>
+          <a href="/esami/instructor/questions"><span class="nav-icon">📚</span> Questionari</a>
+          <a href="/esami/instructor/questions/import"><span class="nav-icon">📥</span> Importa Excel</a>
+        </div>
+        <% } %>
+
+        <% if (currentUser.role === 'admin') { %>
+        <div class="nav-section">
+        <% } %>
+
+        <div class="nav-section">
+          <div class="nav-section-label">Portale Principale</div>
+          <a href="http://localhost:3000"><span class="nav-icon">🌐</span> Portale CASEV</a>
+          <a href="http://localhost:3000/admin"><span class="nav-icon">📊</span> Dashboard Admin</a>
+        </div>
+      <% } %>
+    </nav>
+
+    <div class="sidebar-footer">
+      <% if (currentUser) { %>
+      <div class="user-card">
+        <div class="user-avatar">
+          <%= currentUser.email ? currentUser.email[0].toUpperCase() : '?' %>
+        </div>
+        <div style="flex:1;min-width:0;">
+          <div class="user-name" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="<%= currentUser.email %>"><%= currentUser.email %></div>
+          <div class="user-role"><%= currentUser.role %></div>
+        </div>
+        <a href="/esami/logout" style="background:#e63757;color:#fff;border-radius:6px;padding:6px 10px;font-size:13px;font-weight:600;text-decoration:none;display:inline-block;" title="Esci">⏻ Esci</a>
+      </div>
+      <% } else { %>
+      <a href="/esami/login" style="color:rgba(255,255,255,.5);font-size:.82rem;text-decoration:none;">🔑 Accedi</a>
+      <% } %>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <div class="casev-main">
+
+    <!-- Topbar -->
+    <div class="casev-topbar">
+      <div class="d-flex align-items-center gap-3">
+       
+        <span class="topbar-title">Esami On Line </span>
+      </div>
+      <% if (currentUser) { %>
+      <span class="topbar-user d-none d-md-inline">
+        <%= currentUser.email %> &middot; <span style="color:var(--gold);font-weight:600;"><%= currentUser.role %></span>
+      </span>
+      <% } %>
+    </div>
+
+    <!-- Flash messages -->
+    <% if (flash && (flash.success.length || flash.error.length || flash.info.length)) { %>
+    <div style="padding: 12px 28px 0;">
+      <% if (flash.success && flash.success.length) { %>
+        <div class="alert alert-success alert-dismissible fade show mb-2">✅ <%= flash.success[0] %><button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+      <% } %>
+      <% if (flash.error && flash.error.length) { %>
+        <div class="alert alert-danger alert-dismissible fade show mb-2">⚠️ <%= flash.error[0] %><button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+      <% } %>
+      <% if (flash.info && flash.info.length) { %>
+        <div class="alert alert-info alert-dismissible fade show mb-2">ℹ️ <%= flash.info[0] %><button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+      <% } %>
+    </div>
+    <% } %>
+
+    <!-- Content wrapper aperto — verrà chiuso da foot.ejs -->
+    <div class="casev-content">

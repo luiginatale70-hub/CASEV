@@ -1,0 +1,121 @@
+{{! views/personale/form.hbs }}
+<div class="section-head">
+  <div style="display:flex;align-items:center;gap:12px;">
+    <a href="/personale" class="btn btn-ghost btn-sm">← Torna all'elenco</a>
+    <div class="section-title" style="margin-bottom:0;">➕ Nuovo Personale Equipaggi</div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <div class="card-title">👤 Dati Anagrafici e Professionali</div>
+  </div>
+  <div class="card-body">
+    <form action="/personale/gestione" method="POST">
+
+      <div style="margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--border);">
+        <div style="font-size:11px;font-weight:600;color:var(--navy);text-transform:uppercase;letter-spacing:1px;margin-bottom:14px;">Identificazione</div>
+        <div class="grid-3">
+          <div class="form-group">
+            <label>Matricola *</label>
+            <input type="text" name="matricola" required placeholder="es. GC-12345" style="font-family:'DM Mono',monospace;">
+          </div>
+          <div class="form-group">
+            <label>Cognome *</label>
+            <input type="text" name="cognome" required placeholder="Cognome">
+          </div>
+          <div class="form-group">
+            <label>Nome *</label>
+            <input type="text" name="nome" required placeholder="Nome">
+          </div>
+        </div>
+        <div class="grid-3">
+          <div class="form-group">
+            <label>Grado</label>
+            <input type="text" name="grado" placeholder="es. Tenente di Vascello">
+          </div>
+          <div class="form-group">
+            <label>Categoria *</label>
+            <select name="categoria" required>
+              <option value="">— seleziona —</option>
+              <option value="pilota">Pilota</option>
+              <option value="operatore">Operatore</option>
+              <option value="tecnico">Tecnico</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Specializzazione</label>
+            <input type="text" name="specializzazione" placeholder="es. Elicottero AW139">
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--border);">
+        <div style="font-size:11px;font-weight:600;color:var(--navy);text-transform:uppercase;letter-spacing:1px;margin-bottom:14px;">Dati Personali</div>
+        <div class="grid-3">
+          <div class="form-group">
+            <label>Data di Nascita</label>
+            <input type="date" name="data_nascita">
+          </div>
+          <div class="form-group">
+            <label>Luogo di Nascita</label>
+            <input type="text" name="luogo_nascita" placeholder="Città (Prov.)">
+          </div>
+          <div class="form-group">
+            <label>Data Immissione in Ruolo</label>
+            <input type="date" name="data_immissione">
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--border);">
+        <div style="font-size:11px;font-weight:600;color:var(--navy);text-transform:uppercase;letter-spacing:1px;margin-bottom:14px;">Assegnazione</div>
+        <div class="grid-3">
+          <div class="form-group">
+            <label>Sede di Assegnazione</label>
+            <input type="text" name="sede_assegnazione" placeholder="es. Guardia Costiera Roma">
+          </div>
+          <div class="form-group">
+            <label>Reparto</label>
+            <input type="text" name="reparto" placeholder="es. Sezione Aerea">
+          </div>
+          <div class="form-group">
+            <label>Stato</label>
+            <select name="stato">
+              <option value="attivo">Attivo</option>
+              <option value="sospeso">Sospeso</option>
+              <option value="in_quiescenza">In Quiescenza</option>
+              <option value="trasferito">Trasferito</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-bottom:24px;">
+        <div style="font-size:11px;font-weight:600;color:var(--navy);text-transform:uppercase;letter-spacing:1px;margin-bottom:14px;">Contatti</div>
+        <div class="grid-3">
+          <div class="form-group">
+            <label>Email Istituzionale</label>
+            <input type="email" name="email_istituzionale" placeholder="cognome.nome@guardiacostiera.it">
+          </div>
+          <div class="form-group">
+            <label>Telefono</label>
+            <input type="text" name="telefono" placeholder="es. +39 06 ...">
+          </div>
+          <div class="form-group">
+            <label>&nbsp;</label>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Note</label>
+          <textarea name="note" rows="3" placeholder="Note aggiuntive..."></textarea>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:12px;justify-content:flex-end;">
+        <a href="/personale" class="btn btn-ghost">Annulla</a>
+        <button type="submit" class="btn btn-primary">💾 Salva Personale</button>
+      </div>
+    </form>
+  </div>
+</div>

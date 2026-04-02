@@ -1,0 +1,29 @@
+{{! views/auth/reset_request.hbs }}
+<div class="auth-body">
+  <div class="auth-container">
+    <div class="auth-card">
+      <div class="auth-logo">
+        <div class="auth-brand">CASEV</div>
+        <div class="auth-sub">Reimposta la tua password</div>
+      </div>
+      {{> flash}}
+      <div class="auth-form">
+        <p style="font-size:13px;color:#748194;margin-bottom:16px;">
+          Inserisci la tua email istituzionale. Riceverai un link per reimpostare la password.
+        </p>
+        <form action="/auth/reset-password" method="POST">
+          <div class="form-group">
+            <label>Email istituzionale</label>
+            <input type="email" name="email" required placeholder="nome.cognome@mit.gov.it" autofocus>
+          </div>
+          <button type="submit" class="btn btn-primary btn-full" style="margin-top:8px;">
+            Invia istruzioni
+          </button>
+        </form>
+        <div style="text-align:center;margin-top:16px;">
+          <a href="/auth/login" style="font-size:13px;color:#2c7be5;">Torna al login</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

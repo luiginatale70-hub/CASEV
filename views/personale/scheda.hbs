@@ -1,0 +1,150 @@
+{{! views/personale/scheda.hbs }}
+<div class="section-head">
+  <div style="display:flex;align-items:center;gap:12px;">
+    <a href="/personale" class="btn btn-ghost btn-sm">← Torna all'elenco</a>
+    <div class="section-title" style="margin-bottom:0;">📋 Scheda Personale</div>
+  </div>
+  {{#if isGestore}}
+  <div style="display:flex;gap:8px;">
+    <a href="/personale/{{persona.id}}/modifica" class="btn btn-ghost btn-sm">✏️ Modifica</a>
+    {{#if personaleId}}
+    <button class="btn btn-primary" onclick="document.getElementById('modal-pratica').style.display='flex'">➕ Aggiungi Pratica</button>
+    {{/if}}
+  </div>
+  {{/if}}
+</div>
+<div class="grid-2" style="margin-bottom:20px;">
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">👤 Dati Anagrafici</div>
+      <span class="tag {{#if (eq persona.stato 'attivo')}}tag-green{{else if (eq persona.stato 'sospeso')}}tag-red{{else}}tag-gold{{/if}}">{{persona.stato}}</span>
+    </div>
+    <div class="card-body">
+      <div class="scheda-grid">
+        <div class="scheda-field"><div class="scheda-label">Matricola</div><div class="scheda-val mono">{{persona.matricola}}</div></div>
+        <div class="scheda-field"><div class="scheda-label">Cognome e Nome</div><div class="scheda-val"><strong>{{persona.cognome}} {{persona.nome}}</strong></div></div>
+        <div class="scheda-field"><div class="scheda-label">Grado</div><div class="scheda-val">{{persona.grado}}</div></div>
+        <div class="scheda-field"><div class="scheda-label">Categoria</div><div class="scheda-val"><span class="tag tag-blue">{{persona.categoria}}</span></div></div>
+        <div class="scheda-field"><div class="scheda-label">Specializzazione</div><div class="scheda-val">{{persona.specializzazione}}</div></div>
+        <div class="scheda-field"><div class="scheda-label">Data di Nascita</div><div class="scheda-val">{{formatDate persona.data_nascita}}</div></div>
+        <div class="scheda-field"><div class="scheda-label">Luogo di Nascita</div><div class="scheda-val">{{persona.luogo_nascita}}</div></div>
+        <div class="scheda-field"><div class="scheda-label">Data Immissione</div><div class="scheda-val">{{formatDate persona.data_immissione}}</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header"><div class="card-title">🏢 Assegnazione e Contatti</div></div>
+    <div class="card-body">
+      <div class="scheda-grid">
+        <div class="scheda-field"><div class="scheda-label">Sede Assegnazione</div><div class="scheda-val">{{persona.sede_assegnazione}}</div></div>
+        <div class="scheda-field"><div class="scheda-label">Reparto</div><div class="scheda-val">{{persona.reparto}}</div></div>
+        <div class="scheda-field"><div class="scheda-label">Email Istituzionale</div><div class="scheda-val mono">{{persona.email_istituzionale}}</div></div>
+        <div class="scheda-field"><div class="scheda-label">Telefono</div><div class="scheda-val">{{persona.telefono}}</div></div>
+        <div class="scheda-field"><div class="scheda-label">Username portale</div><div class="scheda-val mono">{{persona.username}}</div></div>
+        <div class="scheda-field"><div class="scheda-label">Ruolo</div><div class="scheda-val"><span class="tag tag-blue">{{persona.ruolo}}</span></div></div>
+      </div>
+      {{#if persona.note}}
+      <div class="scheda-field" style="margin-top:8px;">
+        <div class="scheda-label">Note</div>
+        <div class="scheda-val note-text">{{persona.note}}</div>
+      </div>
+      {{/if}}
+    </div>
+  </div>
+</div>
+
+<div class="section-head">
+  <div class="section-title">📂 Pratiche e Documenti</div>
+  <span style="font-size:12px;color:var(--text-muted);">{{pratiche.length}} document{{#if (eq pratiche.length 1)}}o{{else}}i{{/if}}</span>
+</div>
+<div class="card">
+  <div class="card-body" style="padding:0;">
+    {{#if pratiche}}
+    <table class="table">
+      <thead><tr><th>Tipo</th><th>Titolo / N° Pratica</th><th>Ente</th><th>Emissione</th><th>Scadenza</th><th>Stato</th><th>File</th></tr></thead>
+      <tbody>
+        {{#each pratiche}}
+        <tr>
+          <td><span class="tag tag-blue">{{this.tipo}}</span></td>
+          <td>
+            <div style="font-weight:600;font-size:13px;">{{this.titolo}}</div>
+            {{#if this.numero_pratica}}<div style="font-size:11px;color:var(--text-muted);font-family:'DM Mono',monospace;">{{this.numero_pratica}}</div>{{/if}}
+          </td>
+          <td style="font-size:12px;">{{this.ente_emittente}}</td>
+          <td style="font-size:12px;">{{formatDate this.data_emissione}}</td>
+          <td><span class="scadenza-badge {{#if (eq this.stato 'scaduta')}}scad-scaduta{{else if (eq this.stato 'in_rinnovo')}}scad-rinnovo{{else}}scad-valida{{/if}}">{{formatDate this.data_scadenza}}</span></td>
+          <td>
+            {{#if (eq this.stato 'valida')}}<span class="tag tag-green">valida</span>{{/if}}
+            {{#if (eq this.stato 'scaduta')}}<span class="tag tag-red">scaduta</span>{{/if}}
+            {{#if (eq this.stato 'in_rinnovo')}}<span class="tag tag-gold">rinnovo</span>{{/if}}
+            {{#if (eq this.stato 'revocata')}}<span class="tag tag-red">revocata</span>{{/if}}
+          </td>
+          <td>
+            {{#if this.percorso_file}}<a href="/archivio/download?path={{this.percorso_file}}" class="btn btn-ghost btn-sm">⬇ PDF</a>
+            {{else}}<span style="color:var(--text-muted);font-size:11px;">—</span>{{/if}}
+          </td>
+        </tr>
+        {{/each}}
+      </tbody>
+    </table>
+    {{else}}
+    <div style="text-align:center;padding:48px;color:var(--text-muted);">
+      <div style="font-size:48px;margin-bottom:12px;">📂</div>
+      <p>Nessuna pratica registrata.</p>
+    </div>
+    {{/if}}
+  </div>
+</div>
+
+{{#if isGestore}}{{#if personaleId}}
+<div id="modal-pratica" class="modal-overlay" style="display:none;">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-title">➕ Nuova Pratica</div>
+      <button onclick="document.getElementById('modal-pratica').style.display='none'" class="modal-close">✕</button>
+    </div>
+    <form action="/personale/{{persona.id}}/pratiche" method="POST" class="modal-body">
+      <div class="grid-2">
+        <div class="form-group">
+          <label>Tipo *</label>
+          <select name="tipo" required>
+            <option value="">— seleziona —</option>
+            <option value="licenza">Licenza</option>
+            <option value="abilitazione">Abilitazione</option>
+            <option value="idoneita_medica">Idoneità Medica</option>
+            <option value="corso">Corso</option>
+            <option value="addestramento">Addestramento</option>
+            <option value="sanzione">Sanzione</option>
+            <option value="encomio">Encomio</option>
+            <option value="altro">Altro</option>
+          </select>
+        </div>
+        <div class="form-group"><label>N° Pratica</label><input type="text" name="numero_pratica"></div>
+      </div>
+      <div class="form-group"><label>Titolo *</label><input type="text" name="titolo" required></div>
+      <div class="form-group"><label>Descrizione</label><textarea name="descrizione" rows="2"></textarea></div>
+      <div class="grid-2">
+        <div class="form-group"><label>Ente Emittente</label><input type="text" name="ente_emittente"></div>
+        <div class="form-group">
+          <label>Stato</label>
+          <select name="stato">
+            <option value="valida">Valida</option>
+            <option value="in_rinnovo">In Rinnovo</option>
+            <option value="scaduta">Scaduta</option>
+            <option value="revocata">Revocata</option>
+          </select>
+        </div>
+      </div>
+      <div class="grid-2">
+        <div class="form-group"><label>Data Emissione</label><input type="date" name="data_emissione"></div>
+        <div class="form-group"><label>Data Scadenza</label><input type="date" name="data_scadenza"></div>
+      </div>
+      <div class="form-group"><label>Percorso File</label><input type="text" name="percorso_file"></div>
+      <div class="modal-footer">
+        <button type="button" onclick="document.getElementById('modal-pratica').style.display='none'" class="btn btn-ghost">Annulla</button>
+        <button type="submit" class="btn btn-primary">💾 Salva</button>
+      </div>
+    </form>
+  </div>
+</div>
+{{/if}}{{/if}}

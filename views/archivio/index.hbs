@@ -1,0 +1,60 @@
+{{! views/archivio/index.hbs }}
+<div class="section-head">
+  <div class="section-title">🗄️ Archivio Documenti</div>
+</div>
+
+<!-- Breadcrumb -->
+<div class="breadcrumb-nav">
+  {{#each breadcrumb}}
+  <a href="/archivio?path={{this.path}}" class="crumb">{{this.nome}}</a>
+  {{#unless @last}} <span class="crumb-sep">/</span> {{/unless}}
+  {{/each}}
+</div>
+
+{{#if errore}}
+<div class="alert alert-error">{{errore}}</div>
+{{/if}}
+
+<div class="card" style="margin-top:16px;">
+  <div class="card-body" style="padding:0;">
+    {{#if voci}}
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Nome</th>
+          <th>Tipo</th>
+          <th>Azioni</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{#each voci}}
+        <tr>
+          <td>
+            {{#if this.isDir}}
+            <a href="/archivio?path={{this.path}}" class="file-link">
+              📁 <strong>{{this.nome}}</strong>
+            </a>
+            {{else}}
+            <span class="file-link">📄 {{this.nome}}</span>
+            {{/if}}
+          </td>
+          <td>
+            <span class="tag tag-blue">{{#if this.isDir}}Cartella{{else}}{{this.ext}}{{/if}}</span>
+          </td>
+          <td>
+            {{#unless this.isDir}}
+            <a href="/archivio/download?path={{this.path}}" class="btn btn-ghost btn-sm">⬇ Scarica</a>
+            {{/unless}}
+          </td>
+        </tr>
+        {{/each}}
+      </tbody>
+    </table>
+    {{else}}
+    <div style="text-align:center;padding:48px;color:var(--text-muted);">
+      <div style="font-size:48px;margin-bottom:12px;">📂</div>
+      <p>Cartella vuota o non accessibile.</p>
+    </div>
+    {{/if}}
+  </div>
+</div>

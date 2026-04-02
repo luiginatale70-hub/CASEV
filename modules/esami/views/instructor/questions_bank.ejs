@@ -1,0 +1,149 @@
+<%- include('../partials/head') %>
+<%- include('../partials/nav') %>
+
+<style>
+.naaf-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;}
+.naaf-title{font-size:1.3rem;font-weight:600;}
+.naaf-sub{font-size:0.85rem;color:#6c757d;}
+
+.naaf-actions{display:flex;gap:8px;flex-wrap:wrap;}
+
+.naaf-toolbar{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:12px;margin-bottom:14px;display:flex;gap:10px;flex-wrap:wrap;}
+.naaf-toolbar .btn{height:36px;}
+
+.naaf-card{
+  background:#fff;
+  border:1px solid #e5e7eb;
+  border-radius:12px;
+  padding:12px;
+  margin-bottom:10px;
+  transition:0.15s;
+}
+.naaf-card:hover{
+  box-shadow:0 6px 18px rgba(0,0,0,0.05);
+  transform:translateY(-2px);
+}
+
+.naaf-question{font-weight:600;margin-bottom:6px;cursor:pointer;}
+.naaf-answers{font-size:0.85rem;color:#444;display:flex;flex-direction:column;gap:2px;}
+.naaf-answer.correct{
+  color:#198754;
+  font-weight:600;
+  background:#e9f7ef;
+  border-radius:6px;
+  padding:2px 6px;
+}
+
+.naaf-topic{font-size:0.7rem;border-radius:999px;padding:3px 8px;}
+</style>
+
+<!-- HEADER -->
+<div class="naaf-header">
+  <div>
+    <div class="naaf-title"><%= bank.exam_type %></div>
+    <div class="naaf-sub">Questionario ID <%= bank.id %> — <%= questions.length %> domande</div>
+  </div>
+
+  <div class="naaf-actions">
+    <a class="btn btn-outline-secondary" href="/esami/instructor/questions">← Elenco</a>
+
+    <% if (user && user.role === 'admin') { %>
+<a href="/esami/instructor/questions/<%= bank.id %>/add"
+   style="display:inline-flex;align-items:center;justify-content:center;
+          width:190px;height:42px;
+          background:#198754;color:white;
+          border-radius:6px;
+          text-decoration:none;
+          font-weight:500;
+          margin-right:10px;">
+  + Aggiungi domanda
+</a>
+
+<a href="/esami/instructor/exams/assign"
+   style="display:inline-flex;align-items:center;justify-content:center;
+          width:190px;height:42px;
+          background:#0d6efd;color:white;
+          border-radius:6px;
+          text-decoration:none;
+          font-weight:500;">
+  Assegna esame
+</a>
+    <% } %>
+  </div>
+</div>
+
+<!-- TOOLBAR -->
+<form method="get" class="naaf-toolbar">
+
+  <select name="topic" class="form-select form-select-sm" style="max-width:260px;">
+    <option value="">Tutti gli argomenti</option>
+
+    <% 
+      var topicsMap = {};
+      for (var i = 0; i < questions.length; i++) {
+        var q = questions[i];
+        if (q.topic) topicsMap[q.topic] = true;
+      }
+
+      for (var t in topicsMap) {
+    %>
+      <option value="<%= t %>" <%= topicFilter === t ? 'selected' : '' %>><%= t %></option>
+    <% } %>
+  </select>
+
+  <button type="submit" class="btn btn-outline-primary">Filtra</button>
+  <a href="/esami/instructor/questions/<%= bank.id %>" class="btn btn-outline-secondary">Reset</a>
+</form>
+
+<!-- LISTA -->
+<% if (!questions.length) { %>
+  <div class="naaf-card text-center text-muted">
+    Nessuna domanda trovata.
+  </div>
+<% } %>
+
+<% questions.forEach(function(q) { %>
+  <div class="naaf-card">
+
+    <div class="d-flex justify-content-between align-items-start mb-1">
+      <div class="naaf-question" onclick="this.parentElement.nextElementSibling.classList.toggle('d-none')">
+        <%= q.question %>
+      </div>
+
+      <% if (q.topic) { %>
+        <span class="badge bg-secondary naaf-topic"><%= q.topic %></span>
+      <% } %>
+    </div>
+
+    <div class="naaf-answers d-none">
+      <div class="naaf-answer <%= q.correct_key==='A'?'correct':'' %>">A) <%= q.opt_a %></div>
+      <div class="naaf-answer <%= q.correct_key==='B'?'correct':'' %>">B) <%= q.opt_b %></div>
+      <div class="naaf-answer <%= q.correct_key==='C'?'correct':'' %>">C) <%= q.opt_c %></div>
+      <% if (q.opt_d) { %>
+        <div class="naaf-answer <%= q.correct_key==='D'?'correct':'' %>">D) <%= q.opt_d %></div>
+      <% } %>
+    </div>
+
+    <% if (user && user.role === 'admin') { %>
+      <div class="mt-2 d-flex gap-2 justify-content-end">
+        <a class="btn btn-sm btn-outline-primary"
+           href="/esami/instructor/questions/<%= bank.id %>/q/<%= q.id %>/edit">✏️</a>
+
+        <form method="post"
+              action="/esami/instructor/questions/<%= bank.id %>/q/<%= q.id %>/delete"
+              onsubmit="return confirm('Eliminare questa domanda?')">
+          <button class="btn btn-sm btn-outline-danger">🗑️</button>
+        </form>
+      </div>
+    <% } %>
+
+  </div>
+<% }) %>
+
+<% if (questions.length >= 500) { %>
+  <div class="text-muted small mt-3">
+    ⚠️ Visualizzate le prime 500 domande. Usa il filtro.
+  </div>
+<% } %>
+
+<%- include('../partials/foot') %>
