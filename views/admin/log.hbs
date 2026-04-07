@@ -1,77 +1,139 @@
-<div class="page-header">
-  <h1 class="page-title">Log Accessi Portale</h1>
-  <p class="page-sub">Registro completo degli accessi al portale</p>
+<div class="page-header d-flex justify-content-between align-items-center mb-3">
+  <div>
+    <h1 class="page-title mb-0">🔐 Log Accessi Portale</h1>
+    <p class="page-sub mb-0">Registro accessi sistema</p>
+  </div>
 </div>
-
-<div class="card mb-3">
+<div class="card mb-3 shadow-sm">
   <div class="card-body">
-    <form method="GET" action="/admin/log" class="row g-2 align-items-end">
-      <div class="col-md-5">
-        <label class="form-label small">Cerca utente / IP</label>
-        <input type="text" name="q" class="form-control" value="{{filtri.q}}" placeholder="username o indirizzo IP">
-      </div>
-      <div class="col-md-3">
-        <label class="form-label small">Esito</label>
-        <select name="esito" class="form-select">
-          <option value="">Tutti</option>
-          <option value="successo" {{#eq filtri.esito "successo"}}selected{{/eq}}>Successo</option>
-          <option value="fallito" {{#eq filtri.esito "fallito"}}selected{{/eq}}>Fallito</option>
-        </select>
-      </div>
-      <div class="col-md-2">
-        <button type="submit" class="btn btn-primary w-100">Filtra</button>
-      </div>
-      <div class="col-md-2">
-        <a href="/admin/log" class="btn btn-outline-secondary w-100">Reset</a>
-      </div>
-    </form>
-  </div>
-</div>
 
-<div class="card">
+    <form method="GET" action="/admin/log" class="d-flex align-items-center" style="gap:20px;">
+
+  <label class="mb-0">Utente/IP</label>
+
+  <input 
+    type="text" 
+    name="q" 
+    class="form-control"
+    style="width:220px; height:36px;"
+    value="{{filtri.q}}"
+    placeholder="username o IP">
+
+  <label class="mb-0">Esito</label>
+
+  <select name="esito" class="form-select" style="width:150px; height:36px;">
+    <option value="">Tutti</option>
+    <option value="successo" {{#eq filtri.esito "successo"}}selected{{/eq}}>✔ Successo</option>
+    <option value="fallito" {{#eq filtri.esito "fallito"}}selected{{/eq}}>✖ Fallito</option>
+  </select>
+
+  <button type="submit" class="btn btn-primary" style="height:36px;">
+    Filtra
+  </button>
+
+  <a href="/admin/log" class="btn btn-outline-secondary" style="height:36px;">
+    reset
+  </a>
+
+</form>
+
+
+<div class="card shadow-sm">
   <div class="card-header d-flex justify-content-between align-items-center">
-    <span>Totale: <strong>{{totale}}</strong> accessi</span>
-    <a href="/admin/log/csv" class="btn btn-sm btn-outline-success">CSV</a>
+
+    <div>
+      <span class="text-muted small">Totale accessi</span><br>
+      <strong style="font-size:18px;">{{totale}}</strong>
+    </div>
+
+    <a href="/admin/log/csv" class="btn btn-sm btn-outline-success">⬇ CSV</a>
+
   </div>
+
   <div class="card-body p-0">
     <div class="table-responsive">
-      <table class="table table-hover mb-0">
-        <thead>
+
+      <table class="table table-hover align-middle mb-0">
+
+        <thead class="table-light">
           <tr>
-            <th>Data/Ora</th>
-            <th>Utente</th>
-            <th>Username tentato</th>
-            <th>IP</th>
-            <th>Esito</th>
+            <th style="font-size:12px;">Data/Ora</th>
+            <th style="font-size:12px;">Utente</th>
+            <th style="font-size:12px;">Username</th>
+            <th style="font-size:12px;">IP</th>
+            <th style="font-size:12px;">Esito</th>
           </tr>
         </thead>
+
         <tbody>
           {{#each righe}}
           <tr>
-            <td style="white-space:nowrap;font-size:13px;">{{formatDateTime created_at}}</td>
-            <td>{{#if nome}}{{cognome}} {{nome}}{{else}}<span class="text-muted">—</span>{{/if}}</td>
-            <td><code style="font-size:12px;">{{username_tentato}}</code></td>
-            <td><code style="font-size:12px;">{{ip_address}}</code></td>
+
+            <td style="white-space:nowrap;font-size:13px;">
+              {{formatDateTime created_at}}
+            </td>
+
+            <td>
+              {{#if nome}}
+                <strong>{{cognome}} {{nome}}</strong>
+              {{else}}
+                <span class="text-muted">—</span>
+              {{/if}}
+            </td>
+
+            <td>
+              <code style="font-size:12px;">{{username_tentato}}</code>
+            </td>
+
+            <td>
+              <code style="font-size:12px;">{{ip_address}}</code>
+            </td>
+
             <td>
               {{#eq esito "successo"}}
-                <span class="badge bg-success">OK</span>
+                <span class="badge bg-success">✔ OK</span>
               {{/eq}}
               {{#eq esito "fallito"}}
-                <span class="badge bg-danger">Fallito</span>
+                <span class="badge bg-danger">✖ KO</span>
               {{/eq}}
             </td>
+
           </tr>
           {{/each}}
+
           {{#unless righe}}
-          <tr><td colspan="5" class="text-center text-muted py-4">Nessun accesso registrato</td></tr>
+          <tr>
+            <td colspan="5" class="text-center text-muted py-4">
+              Nessun accesso registrato
+            </td>
+          </tr>
           {{/unless}}
+
         </tbody>
+
       </table>
+
     </div>
   </div>
-  {{#if pages}}
-  <div class="card-footer d-flex justify-content-center gap-2">
-    <span class="btn btn-sm btn-light disabled">Pag {{page}} / {{pages}}</span>
-  </div>
-  {{/if}}
+
+ {{#if pages}}
+<div class="card-footer d-flex justify-content-center align-items-center gap-2">
+
+  <a href="?page={{prev_page}}&q={{filtri.q}}&esito={{filtri.esito}}"
+     class="btn btn-sm btn-outline-secondary {{#eq page 1}}disabled{{/eq}}">
+    ←
+  </a>
+
+  <span class="btn btn-sm btn-light disabled">
+    Pag {{page}} / {{pages}}
+  </span>
+
+  <a href="?page={{next_page}}&q={{filtri.q}}&esito={{filtri.esito}}"
+     class="btn btn-sm btn-outline-primary {{#eq page pages}}disabled{{/eq}}">
+    →
+  </a>
+
+</div>
+{{/if}}
+
 </div>

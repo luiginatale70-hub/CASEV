@@ -40,12 +40,16 @@ startsWith: (str, prefix) => str && str.startsWith(prefix),
       d ? new Date(d).toLocaleDateString('it-IT') : '—',
 
     formatDateTime: (d) =>
-      d
-        ? new Date(d).toLocaleString('it-IT', {
-            hour: '2-digit',
-            minute: '2-digit',
-          })
-        : '—',
+  d
+    ? new Date(d).toLocaleString('it-IT', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+      })
+    : '—',
 
     ifRole(role, check, opts) {
       return role === check ? opts.fn(this) : opts.inverse(this)

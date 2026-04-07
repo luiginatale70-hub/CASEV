@@ -22,22 +22,26 @@ function getDirContent(basePath, relative = '') {
 }
 
 router.get('/', isLoggedIn, async (req, res) => {
-  const basePath = path.resolve(await config.getPath());
+  const basePath = await config.getPath();
   const subDir = req.query.dir ? decodeURIComponent(req.query.dir) : '';
 
-  const currentPath = path.resolve(basePath, subDir);
+  const currentPath = path.join(basePath, subDir);
 
   let items = [];
   let safeDir = subDir;
 
   try {
-    if (!currentPath.startsWith(basePath)) throw new Error('Invalid path');
+   if (!currentPath.toLowerCase().startsWith(basePath.toLowerCase())) {
+  throw new Error('Invalid path');
+}
     if (!fs.existsSync(currentPath)) throw new Error('Path non esiste');
 
     items = getDirContent(basePath, subDir);
   } catch (e) {
     console.log('ERRORE:', e.message);
-
+console.log("BASEPATH:", basePath);
+console.log("CURRENTPATH:", currentPath);
+console.log("COMPARE:", currentPath.toLowerCase(), basePath.toLowerCase());
     // fallback root
     safeDir = '';
     try {
@@ -57,9 +61,9 @@ router.get('/file', isLoggedIn, async (req, res) => {
   const basePath = path.resolve(await config.getPath());
   const relFile = decodeURIComponent(req.query.file);
 
-  const filePath = path.resolve(basePath, relFile);
+ const filePath = path.join(basePath, relFile);
 
-  if (!filePath.startsWith(basePath)) {
+ if (!filePath.toLowerCase().startsWith(basePath.toLowerCase())) {
     return res.status(400).send('Invalid path');
   }
 
